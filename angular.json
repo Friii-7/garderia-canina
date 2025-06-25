@@ -31,7 +31,10 @@
                 "input": "public"
               }
             ],
-            "styles": [
+              "styles": [
+              "@angular/material/prebuilt-themes/azure-blue.css",
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/ngx-spinner/animations/fire.css",
               "src/styles.scss"
             ],
             "scripts": []
@@ -90,7 +93,10 @@
                 "input": "public"
               }
             ],
-            "styles": [
+              "styles": [
+              "@angular/material/prebuilt-themes/azure-blue.css",
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/ngx-spinner/animations/fire.css",
               "src/styles.scss"
             ],
             "scripts": []
@@ -98,5 +104,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "d002a941-3852-4f75-b1e8-2faa4fcd2d62"
   }
 }

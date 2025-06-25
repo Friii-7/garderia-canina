@@ -1,0 +1,78 @@
+.formulario-fondo {
+  min-height: 100vh;
+  background-image: url('/assets/ui/logo.jpg');
+  background-size: 60%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 3rem 1rem;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  margin-bottom: 2rem;
+}
+
+.card-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3a4b;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #2d3a4b;
+}
+
+.form-control, .form-select {
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background: rgba(255,255,255,0.85);
+  transition: border-color 0.2s;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #4f8cff;
+  box-shadow: 0 0 0 2px #4f8cff33;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #4f8cff 0%, #38b6ff 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px 0 rgba(79, 140, 255, 0.12);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(90deg, #38b6ff 0%, #4f8cff 100%);
+  box-shadow: 0 4px 16px 0 rgba(79, 140, 255, 0.18);
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 1rem;
+  }
+  .formulario-fondo {
+    padding: 1rem 0.2rem;
+  }
+  .card-title {
+    font-size: 1.3rem;
+  }
+}

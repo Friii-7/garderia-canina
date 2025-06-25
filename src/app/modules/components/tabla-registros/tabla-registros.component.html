@@ -1,0 +1,102 @@
+<!-- Botón para modal -->
+<button
+  class="btn btn-secondary mb-3"
+  (click)="abrirModal(obtenerUltimoRegistro()!)"
+  [disabled]="registros.length === 0">
+  Ver último registro / PDF
+</button>
+
+<!-- Tabla de registros -->
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h5 class="card-title mb-3">Registros</h5>
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Fecha ingreso</th>
+            <th>Tamaño</th>
+            <th>Días alojamiento</th>
+            <th>Di sol</th>
+            <th>Baño</th>
+            <th>Ingresos</th>
+            <th>Gastos</th>
+            <th>Total</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let registro of registros; let i = index">
+            <td>{{ registro.nombre }}</td>
+            <td>{{ registro.fecha }}</td>
+            <td>{{ registro.tamano }}</td>
+            <td>{{ registro.dias }}</td>
+            <td>{{ registro.diSol ? 'Sí' : 'No' }}</td>
+            <td>{{ registro.bano ? 'Sí' : 'No' }}</td>
+            <td>${{ registro.ingresos.toLocaleString() }}</td>
+            <td>${{ registro.gastos.toLocaleString() }}</td>
+            <td>${{ registro.total.toLocaleString() }}</td>
+            <td>
+              <button
+                class="btn btn-sm btn-outline-primary me-1"
+                (click)="abrirModal(registro)">
+                Ver
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div
+  class="modal fade"
+  [class.show]="mostrarModal"
+  [style.display]="mostrarModal ? 'block' : 'none'"
+  tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Detalle de mascota</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="cerrarModal()">
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="registroSeleccionado">
+        <p><strong>Nombre:</strong> {{ registroSeleccionado.nombre }}</p>
+        <p><strong>Fecha ingreso:</strong> {{ registroSeleccionado.fecha }}</p>
+        <p><strong>Tamaño:</strong> {{ registroSeleccionado.tamano }}</p>
+        <p><strong>Días alojamiento:</strong> {{ registroSeleccionado.dias }}</p>
+        <p><strong>Di sol:</strong> {{ registroSeleccionado.diSol ? 'Sí' : 'No' }}</p>
+        <p><strong>Baño:</strong> {{ registroSeleccionado.bano ? 'Sí' : 'No' }}</p>
+        <p><strong>Ingresos:</strong> ${{ registroSeleccionado.ingresos.toLocaleString() }}</p>
+        <p><strong>Gastos:</strong> ${{ registroSeleccionado.gastos.toLocaleString() }}</p>
+        <p><strong>Total:</strong> ${{ registroSeleccionado.total.toLocaleString() }}</p>
+      </div>
+      <div class="modal-footer">
+        <button
+          class="btn btn-primary"
+          (click)="generarPDF()">
+          Generar PDF
+        </button>
+        <button
+          class="btn btn-secondary"
+          (click)="cerrarModal()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Backdrop del modal -->
+<div
+  class="modal-backdrop fade show"
+  *ngIf="mostrarModal"
+  (click)="cerrarModal()">
+</div>
