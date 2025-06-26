@@ -23,6 +23,7 @@
             <th>Ingresos</th>
             <th>Gastos</th>
             <th>Total</th>
+            <th>Método de pago</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -37,6 +38,7 @@
             <td>${{ registro.ingresos.toLocaleString() }}</td>
             <td>${{ registro.gastos.toLocaleString() }}</td>
             <td>${{ registro.total.toLocaleString() }}</td>
+            <td>{{ registro.metodoPago }}</td>
             <td>
               <div class="btn-group" role="group">
                 <button
@@ -92,6 +94,7 @@
         <p><strong>Ingresos:</strong> ${{ registroSeleccionado.ingresos.toLocaleString() }}</p>
         <p><strong>Gastos:</strong> ${{ registroSeleccionado.gastos.toLocaleString() }}</p>
         <p><strong>Total:</strong> ${{ registroSeleccionado.total.toLocaleString() }}</p>
+        <p><strong>Método de pago:</strong> {{ registroSeleccionado.metodoPago }}</p>
       </div>
       <div class="modal-footer">
         <button
@@ -240,6 +243,23 @@
               <div class="form-control-plaintext fw-bold">
                 ${{ totalEdit.toLocaleString() }}
               </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="metodoPagoEdit" class="form-label">Método de pago *</label>
+              <select
+                class="form-select"
+                id="metodoPagoEdit"
+                [(ngModel)]="metodoPagoEdit"
+                name="metodoPagoEdit"
+                required>
+                <option value="">Seleccione método de pago</option>
+                <option *ngFor="let opcion of opcionesMetodoPago" [value]="opcion.valor">
+                  {{ opcion.texto }}
+                </option>
+              </select>
             </div>
           </div>
         </form>

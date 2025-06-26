@@ -13,6 +13,7 @@ export interface RegistroPerro {
   ingresos: number;
   gastos: number;
   total: number;
+  metodoPago: string;
   fechaCreacion?: Date;
 }
 
@@ -36,6 +37,7 @@ export class RegistroFormularioComponent {
   servicioDiSol: boolean = false;
   servicioBano: boolean = false;
   gastos: number = 0;
+  metodoPago: string = '';
 
   // Valores calculados
   ingresos: number = 0;
@@ -50,6 +52,13 @@ export class RegistroFormularioComponent {
     { valor: '35000', texto: 'Pequeño (35 000 COP/día)' },
     { valor: '40000', texto: 'Mediano (40 000 COP/día)' },
     { valor: '45000', texto: 'Grande (45 000 COP/día)' }
+  ];
+
+  // Opciones de método de pago
+  opcionesMetodoPago = [
+    { valor: 'efectivo', texto: 'Efectivo' },
+    { valor: 'transferencia', texto: 'Transferencia' },
+    { valor: 'tarjeta', texto: 'Tarjeta de Crédito/Débito' }
   ];
 
   actualizarIngresos() {
@@ -67,7 +76,7 @@ export class RegistroFormularioComponent {
   }
 
   async onSubmit() {
-    if (!this.nombreMascota || !this.fechaIngreso || !this.tamanoPerro) {
+    if (!this.nombreMascota || !this.fechaIngreso || !this.tamanoPerro || !this.metodoPago) {
       alert('Por favor complete todos los campos requeridos');
       return;
     }
@@ -84,6 +93,7 @@ export class RegistroFormularioComponent {
       ingresos: this.ingresos,
       gastos: this.gastos,
       total: this.total,
+      metodoPago: this.metodoPago,
       fechaCreacion: new Date()
     };
 
@@ -113,5 +123,6 @@ export class RegistroFormularioComponent {
     this.gastos = 0;
     this.ingresos = 0;
     this.total = 0;
+    this.metodoPago = '';
   }
 }

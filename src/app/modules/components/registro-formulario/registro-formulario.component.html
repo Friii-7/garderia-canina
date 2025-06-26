@@ -109,6 +109,20 @@
               [value]="total"
               readonly>
           </div>
+          <div class="col-md-6">
+            <label for="metodoPago" class="form-label">Método de pago *</label>
+            <select
+              class="form-select"
+              id="metodoPago"
+              [(ngModel)]="metodoPago"
+              name="metodoPago"
+              required>
+              <option value="">Seleccione método de pago</option>
+              <option *ngFor="let opcion of opcionesMetodoPago" [value]="opcion.valor">
+                {{ opcion.texto }}
+              </option>
+            </select>
+          </div>
         </div>
         <button type="submit" class="btn btn-primary mt-4">Agregar a la tabla</button>
       </form>

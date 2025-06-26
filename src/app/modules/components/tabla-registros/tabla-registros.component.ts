@@ -59,6 +59,7 @@ export class TablaRegistrosComponent implements OnInit {
   servicioDiSolEdit: boolean = false;
   servicioBanoEdit: boolean = false;
   gastosEdit: number = 0;
+  metodoPagoEdit: string = '';
 
   // Valores calculados para edición
   ingresosEdit: number = 0;
@@ -73,6 +74,13 @@ export class TablaRegistrosComponent implements OnInit {
     { valor: '35000', texto: 'Pequeño (35 000 COP/día)' },
     { valor: '40000', texto: 'Mediano (40 000 COP/día)' },
     { valor: '45000', texto: 'Grande (45 000 COP/día)' }
+  ];
+
+  // Opciones de método de pago
+  opcionesMetodoPago = [
+    { valor: 'efectivo', texto: 'Efectivo' },
+    { valor: 'transferencia', texto: 'Transferencia' },
+    { valor: 'tarjeta', texto: 'Tarjeta de Crédito/Débito' }
   ];
 
   editarRegistro(registro: any) {
@@ -90,6 +98,7 @@ export class TablaRegistrosComponent implements OnInit {
     this.servicioDiSolEdit = registro.diSol;
     this.servicioBanoEdit = registro.bano;
     this.gastosEdit = registro.gastos;
+    this.metodoPagoEdit = registro.metodoPago;
 
     this.actualizarIngresosEdit();
     this.mostrarModalEdicion = true;
@@ -110,7 +119,7 @@ export class TablaRegistrosComponent implements OnInit {
   }
 
   async guardarEdicion() {
-    if (!this.nombreMascotaEdit || !this.fechaIngresoEdit || !this.tamanoPerroEdit) {
+    if (!this.nombreMascotaEdit || !this.fechaIngresoEdit || !this.tamanoPerroEdit || !this.metodoPagoEdit) {
       alert('Por favor complete todos los campos requeridos');
       return;
     }
@@ -127,7 +136,8 @@ export class TablaRegistrosComponent implements OnInit {
         bano: this.servicioBanoEdit,
         ingresos: this.ingresosEdit,
         gastos: this.gastosEdit,
-        total: this.totalEdit
+        total: this.totalEdit,
+        metodoPago: this.metodoPagoEdit
       };
 
       const docRef = doc(this.firestore, 'registros', this.registroEditando.id);
@@ -158,6 +168,7 @@ export class TablaRegistrosComponent implements OnInit {
     this.gastosEdit = 0;
     this.ingresosEdit = 0;
     this.totalEdit = 0;
+    this.metodoPagoEdit = '';
   }
 
   async eliminarRegistro(registro: any) {
