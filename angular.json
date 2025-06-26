@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "guarderia_canina-estadio": {
+    "guarderia_canina_estadio": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/guarderia_canina-estadio",
+            "outputPath": "dist/guarderia_canina_estadio",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -67,10 +67,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "guarderia_canina-estadio:build:production"
+              "buildTarget": "guarderia_canina_estadio:build:production"
             },
             "development": {
-              "buildTarget": "guarderia_canina-estadio:build:development"
+              "buildTarget": "guarderia_canina_estadio:build:development"
             }
           },
           "defaultConfiguration": "development"
