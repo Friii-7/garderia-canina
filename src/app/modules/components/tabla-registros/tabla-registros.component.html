@@ -38,11 +38,26 @@
             <td>${{ registro.gastos.toLocaleString() }}</td>
             <td>${{ registro.total.toLocaleString() }}</td>
             <td>
-              <button
-                class="btn btn-sm btn-outline-primary me-1"
-                (click)="abrirModal(registro)">
-                Ver
-              </button>
+              <div class="btn-group" role="group">
+                <button
+                  class="btn btn-sm btn-outline-info me-1"
+                  title="Ver detalles"
+                  (click)="abrirModal(registro)">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-warning me-1"
+                  title="Editar registro"
+                  (click)="editarRegistro(registro)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  title="Eliminar registro"
+                  (click)="eliminarRegistro(registro)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -99,4 +114,155 @@
   class="modal-backdrop fade show"
   *ngIf="mostrarModal"
   (click)="cerrarModal()">
+</div>
+
+<!-- Modal de Edición -->
+<div
+  class="modal fade"
+  [class.show]="mostrarModalEdicion"
+  [style.display]="mostrarModalEdicion ? 'block' : 'none'"
+  tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar Registro - {{ nombreMascotaEdit }}</h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="cerrarModalEdicion()">
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="nombreEdit" class="form-label">Nombre de la mascota *</label>
+              <input
+                type="text"
+                class="form-control"
+                id="nombreEdit"
+                [(ngModel)]="nombreMascotaEdit"
+                name="nombreEdit"
+                required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="fechaEdit" class="form-label">Fecha de ingreso *</label>
+              <input
+                type="date"
+                class="form-control"
+                id="fechaEdit"
+                [(ngModel)]="fechaIngresoEdit"
+                name="fechaEdit"
+                required>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="tamanoEdit" class="form-label">Tamaño del perro *</label>
+              <select
+                class="form-select"
+                id="tamanoEdit"
+                [(ngModel)]="tamanoPerroEdit"
+                name="tamanoEdit"
+                (change)="actualizarIngresosEdit()"
+                required>
+                <option value="">Seleccione el tamaño</option>
+                <option *ngFor="let opcion of opcionesTamano" [value]="opcion.valor">
+                  {{ opcion.texto }}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="diasEdit" class="form-label">Días de alojamiento</label>
+              <input
+                type="number"
+                class="form-control"
+                id="diasEdit"
+                [(ngModel)]="diasAlojamientoEdit"
+                name="diasEdit"
+                min="0"
+                (input)="actualizarIngresosEdit()">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="diSolEdit"
+                  [(ngModel)]="servicioDiSolEdit"
+                  name="diSolEdit"
+                  (change)="actualizarIngresosEdit()">
+                <label class="form-check-label" for="diSolEdit">
+                  Servicio Di Sol (${{ tarifaDiSol.toLocaleString() }})
+                </label>
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="banoEdit"
+                  [(ngModel)]="servicioBanoEdit"
+                  name="banoEdit"
+                  (change)="actualizarIngresosEdit()">
+                <label class="form-check-label" for="banoEdit">
+                  Servicio de Baño (${{ tarifaBano.toLocaleString() }})
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="gastosEdit" class="form-label">Gastos adicionales</label>
+              <input
+                type="number"
+                class="form-control"
+                id="gastosEdit"
+                [(ngModel)]="gastosEdit"
+                name="gastosEdit"
+                min="0"
+                (input)="calcularTotalEdit()">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Ingresos calculados</label>
+              <div class="form-control-plaintext">
+                ${{ ingresosEdit.toLocaleString() }}
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Total</label>
+              <div class="form-control-plaintext fw-bold">
+                ${{ totalEdit.toLocaleString() }}
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          class="btn btn-primary"
+          (click)="guardarEdicion()">
+          <i class="bi bi-check-circle"></i> Guardar Cambios
+        </button>
+        <button
+          class="btn btn-secondary"
+          (click)="cerrarModalEdicion()">
+          <i class="bi bi-x-circle"></i> Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Backdrop del modal de edición -->
+<div
+  class="modal-backdrop fade show"
+  *ngIf="mostrarModalEdicion"
+  (click)="cerrarModalEdicion()">
 </div>

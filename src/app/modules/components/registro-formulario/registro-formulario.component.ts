@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Firestore, addDoc, collection } from '@angular/fire/firestore';
 
 export interface RegistroPerro {
   nombre: string;
@@ -12,6 +13,7 @@ export interface RegistroPerro {
   ingresos: number;
   gastos: number;
   total: number;
+  fechaCreacion?: Date;
 }
 
 @Component({
@@ -23,6 +25,8 @@ export interface RegistroPerro {
 })
 export class RegistroFormularioComponent {
   @Output() nuevoRegistro = new EventEmitter<RegistroPerro>();
+
+  constructor(private firestore: Firestore) {}
 
   // Datos del formulario
   nombreMascota: string = '';
@@ -62,7 +66,7 @@ export class RegistroFormularioComponent {
     this.total = this.ingresos + (this.gastos || 0);
   }
 
-  onSubmit() {
+  async onSubmit() {
     if (!this.nombreMascota || !this.fechaIngreso || !this.tamanoPerro) {
       alert('Por favor complete todos los campos requeridos');
       return;
@@ -79,11 +83,24 @@ export class RegistroFormularioComponent {
       bano: this.servicioBano,
       ingresos: this.ingresos,
       gastos: this.gastos,
-      total: this.total
+      total: this.total,
+      fechaCreacion: new Date()
     };
 
-    this.nuevoRegistro.emit(registro);
-    this.resetForm();
+    try {
+      // Guardar en Firebase
+      const registrosRef = collection(this.firestore, 'registros');
+      await addDoc(registrosRef, registro);
+
+      // Emitir evento para actualizar la tabla
+      this.nuevoRegistro.emit(registro);
+      this.resetForm();
+
+      alert('Registro guardado exitosamente en Firebase');
+    } catch (error) {
+      console.error('Error al guardar en Firebase:', error);
+      alert('Error al guardar el registro. Por favor intente nuevamente.');
+    }
   }
 
   resetForm() {

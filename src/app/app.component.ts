@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TablaRegistrosComponent } from "./modules/components/tabla-registros/tabla-registros.component";
 import { RegistroFormularioComponent, RegistroPerro } from "./modules/components/registro-formulario/registro-formulario.component";
@@ -12,10 +12,13 @@ import { RegistroFormularioComponent, RegistroPerro } from "./modules/components
 export class AppComponent {
   title = 'guarderia_canina_estadio';
 
-  registros: RegistroPerro[] = [];
+  @ViewChild(TablaRegistrosComponent) tablaComponent!: TablaRegistrosComponent;
 
-  onNuevoRegistro(registro: RegistroPerro) {
-    this.registros.push(registro);
+  async onNuevoRegistro(registro: RegistroPerro) {
+    // Actualizar la tabla después de guardar en Firebase
+    if (this.tablaComponent) {
+      await this.tablaComponent.actualizarTabla();
+    }
   }
 }
 
