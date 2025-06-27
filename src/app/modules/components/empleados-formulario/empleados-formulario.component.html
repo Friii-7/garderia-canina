@@ -1,0 +1,64 @@
+<div class="empleados-formulario">
+  <h2 class="mb-4">Formulario de Empleados</h2>
+
+  <form (ngSubmit)="onSubmit()" class="row g-3">
+    <div class="col-md-6">
+      <label for="fecha" class="form-label">Fecha</label>
+      <input
+        type="date"
+        class="form-control"
+        id="fecha"
+        [(ngModel)]="registro.fecha"
+        name="fecha"
+        required>
+    </div>
+
+    <div class="col-md-6">
+      <label for="empleado" class="form-label">Empleado</label>
+      <select
+        class="form-select"
+        id="empleado"
+        [(ngModel)]="registro.empleado"
+        name="empleado"
+        required>
+        <option value="">Seleccionar empleado</option>
+        <option *ngFor="let empleado of empleados" [value]="empleado">
+          {{ empleado }}
+        </option>
+      </select>
+    </div>
+
+    <div class="col-md-6">
+      <label for="turno" class="form-label">Turno</label>
+      <select
+        class="form-select"
+        id="turno"
+        [(ngModel)]="registro.turno"
+        name="turno"
+        required>
+        <option value="">Seleccionar turno</option>
+        <option *ngFor="let turno of turnos" [value]="turno">
+          {{ turno }}
+        </option>
+      </select>
+    </div>
+
+    <div class="col-md-6">
+      <div class="form-check mt-4">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="pago"
+          [(ngModel)]="registro.pago"
+          name="pago">
+        <label class="form-check-label" for="pago">
+          Pago realizado
+        </label>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <button type="submit" class="btn btn-success">Guardar Registro</button>
+    </div>
+  </form>
+</div>

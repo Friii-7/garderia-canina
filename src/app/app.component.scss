@@ -1,0 +1,113 @@
+.nav-tabs .nav-link {
+  color: #495057;
+  border: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #007bff;
+  border-bottom-color: #007bff;
+}
+
+.nav-tabs .nav-link.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+  background-color: transparent;
+}
+
+.tab-content {
+  padding: 20px 0;
+}
+
+.card {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: none;
+  border-radius: 8px;
+}
+
+.table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.badge {
+  font-size: 0.8em;
+  padding: 0.5em 0.8em;
+}
+
+.form-control, .form-select {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  transition: border-color 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+.btn {
+  border-radius: 6px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+// Estilos para botones de acción en tablas
+.btn-group .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  margin: 0 2px;
+}
+
+.btn-group .btn:hover {
+  transform: scale(1.1);
+}
+
+.btn-outline-primary:hover {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-outline-danger:hover {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.btn-outline-warning:hover {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #000;
+}
+
+.btn-outline-info:hover {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+}
+
+// Iconos en botones
+.btn i {
+  font-size: 0.9em;
+}
+
+.logo-guarderia {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  margin-bottom: 10px;
+  border: 3px solid #e3e3e3;
+  transition: box-shadow 0.3s;
+}
+.logo-guarderia:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}

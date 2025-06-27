@@ -1,8 +1,68 @@
-<div class="container py-5">
+<div class="container-fluid py-4">
+  <div class="text-center mb-3">
+    <img src="assets/ui/logo.jpg" alt="Logo Guardería Canina" class="logo-guarderia">
+  </div>
+  <h1 class="text-center mb-5">Sistema de Gestión - Guardería Canina</h1>
 
-  <!-- Formulario de registro -->
-  <app-registro-formulario (nuevoRegistro)="onNuevoRegistro($event)"></app-registro-formulario>
+  <!-- Navegación por pestañas -->
+  <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="perros-tab" data-bs-toggle="tab" data-bs-target="#perros" type="button" role="tab">
+        Registro de Perros
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="contabilidad-tab" data-bs-toggle="tab" data-bs-target="#contabilidad" type="button" role="tab">
+        Contabilidad
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="empleados-tab" data-bs-toggle="tab" data-bs-target="#empleados" type="button" role="tab">
+        Empleados
+      </button>
+    </li>
+  </ul>
 
-  <!-- Tabla de registros -->
-  <app-tabla-registros></app-tabla-registros>
+  <!-- Contenido de las pestañas -->
+  <div class="tab-content" id="myTabContent">
+    <!-- Pestaña de Perros -->
+    <div class="tab-pane fade show active" id="perros" role="tabpanel">
+      <div class="row">
+        <div class="col-md-6">
+          <app-registro-formulario></app-registro-formulario>
+        </div>
+        <div class="col-md-6">
+          <app-tabla-registros></app-tabla-registros>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pestaña de Contabilidad -->
+    <div class="tab-pane fade" id="contabilidad" role="tabpanel">
+      <div class="row">
+        <div class="col-md-6">
+          <app-contabilidad-formulario (nuevoRegistro)="onNuevoRegistroContabilidad($event)"></app-contabilidad-formulario>
+        </div>
+        <div class="col-md-6">
+          <app-contabilidad-tabla
+            [registros]="registrosContabilidad"
+            (editarRegistro)="onEditarContabilidad($event)"
+            (eliminarRegistro)="onEliminarContabilidad($event)">
+          </app-contabilidad-tabla>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pestaña de Empleados -->
+    <div class="tab-pane fade" id="empleados" role="tabpanel">
+      <div class="row">
+        <div class="col-md-6">
+          <app-empleados-formulario (registroGuardado)="empleadosTabla.cargarRegistros()"></app-empleados-formulario>
+        </div>
+        <div class="col-md-6">
+          <app-empleados-tabla #empleadosTabla></app-empleados-tabla>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
