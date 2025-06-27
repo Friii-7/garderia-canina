@@ -10,7 +10,7 @@ import { RegistroFormularioComponent, RegistroPerro } from "./modules/components
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'guarderia_canina_estadio';
+
 
   @ViewChild(TablaRegistrosComponent) tablaComponent!: TablaRegistrosComponent;
 

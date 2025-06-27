@@ -3,8 +3,9 @@
     <div class="card-body">
       <h5 class="card-title mb-4">Registro Guardería Canina</h5>
       <form (ngSubmit)="onSubmit()" #form="ngForm">
+        <!-- Fila 1: Nombre, Fecha, Tamaño -->
         <div class="row g-3">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <label for="nombreMascota" class="form-label">Nombre de la mascota</label>
             <input
               type="text"
@@ -14,7 +15,7 @@
               name="nombreMascota"
               required>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
             <label for="fechaIngreso" class="form-label">Fecha de ingreso</label>
             <input
               type="date"
@@ -24,7 +25,7 @@
               name="fechaIngreso"
               required>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
             <label for="tamanoPerro" class="form-label">Tamaño del perro</label>
             <select
               class="form-select"
@@ -39,6 +40,9 @@
               </option>
             </select>
           </div>
+        </div>
+        <!-- Fila 2: Días, Gastos, Método de pago -->
+        <div class="row g-3 mt-2">
           <div class="col-md-4">
             <label for="diasAlojamiento" class="form-label">Días alojamiento</label>
             <input
@@ -50,43 +54,6 @@
               (input)="actualizarIngresos()"
               value="0"
               min="0">
-          </div>
-          <div class="col-md-4 d-flex align-items-center">
-            <div class="form-check mt-2">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="servicioDiSol"
-                [(ngModel)]="servicioDiSol"
-                name="servicioDiSol"
-                (change)="actualizarIngresos()">
-              <label class="form-check-label" for="servicioDiSol">
-                Servicio di sol (+25 000 COP)
-              </label>
-            </div>
-          </div>
-          <div class="col-md-4 d-flex align-items-center">
-            <div class="form-check mt-2">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="servicioBano"
-                [(ngModel)]="servicioBano"
-                name="servicioBano"
-                (change)="actualizarIngresos()">
-              <label class="form-check-label" for="servicioBano">
-                Servicio de baño (+50 000 COP)
-              </label>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <label for="ingresos" class="form-label">Ingresos (COP)</label>
-            <input
-              type="number"
-              class="form-control"
-              id="ingresos"
-              [value]="ingresos"
-              readonly>
           </div>
           <div class="col-md-4">
             <label for="gastos" class="form-label">Gastos (COP)</label>
@@ -101,15 +68,6 @@
               min="0">
           </div>
           <div class="col-md-4">
-            <label for="total" class="form-label">Total neto (COP)</label>
-            <input
-              type="number"
-              class="form-control"
-              id="total"
-              [value]="total"
-              readonly>
-          </div>
-          <div class="col-md-6">
             <label for="metodoPago" class="form-label">Método de pago *</label>
             <select
               class="form-select"
@@ -124,7 +82,66 @@
             </select>
           </div>
         </div>
-        <button type="submit" class="btn btn-primary mt-4">Agregar a la tabla</button>
+        <!-- Fila 3: Checkboxes en una fila, centrados -->
+        <div class="row g-3 mt-2 justify-content-center">
+          <div class="col-md-3"></div>
+          <div class="col-md-3 d-flex justify-content-end align-items-center">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="servicioDiSol"
+                [(ngModel)]="servicioDiSol"
+                name="servicioDiSol"
+                (change)="actualizarIngresos()">
+              <label class="form-check-label ms-2" for="servicioDiSol">
+                Servicio día sol (+25 000 COP)
+              </label>
+            </div>
+          </div>
+          <div class="col-md-3 d-flex justify-content-start align-items-center">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="servicioBano"
+                [(ngModel)]="servicioBano"
+                name="servicioBano"
+                (change)="actualizarIngresos()">
+              <label class="form-check-label ms-2" for="servicioBano">
+                Servicio de baño (+50 000 COP)
+              </label>
+            </div>
+          </div>
+          <div class="col-md-3"></div>
+        </div>
+        <!-- Fila 4: Ingresos, Total -->
+        <div class="row g-3 mt-2">
+          <div class="col-md-6">
+            <label for="ingresos" class="form-label">Ingresos (COP)</label>
+            <input
+              type="number"
+              class="form-control"
+              id="ingresos"
+              [value]="ingresos"
+              readonly>
+          </div>
+          <div class="col-md-6">
+            <label for="total" class="form-label">Total neto (COP)</label>
+            <input
+              type="number"
+              class="form-control"
+              id="total"
+              [value]="total"
+              readonly>
+          </div>
+        </div>
+        <!-- Botón centrado -->
+        <div class="row mt-4">
+          <div class="col-12 d-flex justify-content-center">
+            <button type="submit" class="btn btn-primary">Agregar a la tabla</button>
+          </div>
+        </div>
       </form>
     </div>
   </div>

@@ -1,11 +1,3 @@
-<!-- Botón para modal -->
-<button
-  class="btn btn-secondary mb-3"
-  (click)="abrirModal(obtenerUltimoRegistro()!)"
-  [disabled]="registros.length === 0">
-  Ver último registro / PDF
-</button>
-
 <!-- Tabla de registros -->
 <div class="card shadow-sm">
   <div class="card-body">
@@ -18,7 +10,7 @@
             <th>Fecha ingreso</th>
             <th>Tamaño</th>
             <th>Días alojamiento</th>
-            <th>Di sol</th>
+            <th>Día sol</th>
             <th>Baño</th>
             <th>Ingresos</th>
             <th>Gastos</th>
