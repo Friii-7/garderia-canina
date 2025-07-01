@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, AfterViewInit, NgZone, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ContabilidadRegistro } from '../contabilidad-formulario/contabilidad-formulario.component';
@@ -11,7 +11,7 @@ import { Firestore, collection, getDocs, query, orderBy, deleteDoc, doc, updateD
   templateUrl: './contabilidad-tabla.component.html',
   styleUrl: './contabilidad-tabla.component.scss'
 })
-export class ContabilidadTablaComponent implements OnInit {
+export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
   @Input() registros: ContabilidadRegistro[] = [];
   @Output() editarRegistro = new EventEmitter<ContabilidadRegistro>();
   @Output() eliminarRegistro = new EventEmitter<string>();
@@ -27,25 +27,40 @@ export class ContabilidadTablaComponent implements OnInit {
   observacionesEdit: string = '';
   totalEdit: number = 0;
 
-  constructor(private firestore: Firestore) {}
+  private firestore = inject(Firestore);
+  private ngZone = inject(NgZone);
 
   ngOnInit() {
+    // Component initialization
+  }
+
+  ngAfterViewInit() {
+    // Load data after view is initialized to avoid injection context warnings
     this.cargarRegistros();
   }
 
   async cargarRegistros() {
     try {
-      const registrosRef = collection(this.firestore, 'contabilidad');
-      const q = query(registrosRef, orderBy('fechaCreacion', 'desc'));
-      const querySnapshot = await getDocs(q);
+      await this.ngZone.runOutsideAngular(async () => {
+        const registrosRef = collection(this.firestore, 'contabilidad');
+        const q = query(registrosRef, orderBy('fechaCreacion', 'desc'));
+        const querySnapshot = await getDocs(q);
 
-      this.registros = querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          ...data,
-          id: doc.id,
-          fechaCreacion: data['fechaCreacion']?.toDate() || new Date()
-        } as ContabilidadRegistro;
+        const registros = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            ...data,
+            id: doc.id,
+            ingreso: data['ingreso'] || 0,
+            gastos: data['gastos'] || 0,
+            total: data['total'] || 0,
+            fechaCreacion: data['fechaCreacion']?.toDate() || new Date()
+          } as ContabilidadRegistro;
+        });
+
+        this.ngZone.run(() => {
+          this.registros = registros;
+        });
       });
     } catch (error) {
       console.error('Error al cargar registros:', error);
@@ -86,16 +101,20 @@ export class ContabilidadTablaComponent implements OnInit {
     }
 
     try {
-      const datosActualizados = {
-        fecha: this.fechaEdit,
-        ingreso: this.ingresoEdit,
-        gastos: this.gastosEdit,
-        observaciones: this.observacionesEdit,
-        total: this.totalEdit
-      };
+      await this.ngZone.runOutsideAngular(async () => {
+        if (this.registroEditando && this.registroEditando.id) {
+          const datosActualizados = {
+            fecha: this.fechaEdit,
+            ingreso: this.ingresoEdit,
+            gastos: this.gastosEdit,
+            observaciones: this.observacionesEdit,
+            total: this.totalEdit
+          };
 
-      const docRef = doc(this.firestore, 'contabilidad', this.registroEditando.id);
-      await updateDoc(docRef, datosActualizados);
+          const docRef = doc(this.firestore, 'contabilidad', this.registroEditando.id);
+          await updateDoc(docRef, datosActualizados);
+        }
+      });
 
       await this.cargarRegistros();
       this.cerrarModalEdicion();
@@ -127,8 +146,10 @@ export class ContabilidadTablaComponent implements OnInit {
     }
     if (confirm('¿Estás seguro de que quieres eliminar este registro?')) {
       try {
-        const docRef = doc(this.firestore, 'contabilidad', id);
-        await deleteDoc(docRef);
+        await this.ngZone.runOutsideAngular(async () => {
+          const docRef = doc(this.firestore, 'contabilidad', id);
+          await deleteDoc(docRef);
+        });
         await this.cargarRegistros();
         alert('Registro eliminado exitosamente');
       } catch (error) {

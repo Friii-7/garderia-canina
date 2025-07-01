@@ -28,11 +28,13 @@
     <!-- Pestaña de Perros -->
     <div class="tab-pane fade show active" id="perros" role="tabpanel">
       <div class="row">
-        <div class="col-md-6">
-          <app-registro-formulario></app-registro-formulario>
+        <div class="col-12">
+          <app-registro-formulario (nuevoRegistro)="tablaRegistros.actualizarTabla()"></app-registro-formulario>
         </div>
-        <div class="col-md-6">
-          <app-tabla-registros></app-tabla-registros>
+      </div>
+      <div class="row mt-4">
+        <div class="col-12">
+          <app-tabla-registros #tablaRegistros></app-tabla-registros>
         </div>
       </div>
     </div>
@@ -41,14 +43,10 @@
     <div class="tab-pane fade" id="contabilidad" role="tabpanel">
       <div class="row">
         <div class="col-md-6">
-          <app-contabilidad-formulario (nuevoRegistro)="onNuevoRegistroContabilidad($event)"></app-contabilidad-formulario>
+          <app-contabilidad-formulario (nuevoRegistro)="contabilidadTabla.actualizarTabla()"></app-contabilidad-formulario>
         </div>
         <div class="col-md-6">
-          <app-contabilidad-tabla
-            [registros]="registrosContabilidad"
-            (editarRegistro)="onEditarContabilidad($event)"
-            (eliminarRegistro)="onEliminarContabilidad($event)">
-          </app-contabilidad-tabla>
+          <app-contabilidad-tabla #contabilidadTabla></app-contabilidad-tabla>
         </div>
       </div>
     </div>
@@ -57,7 +55,7 @@
     <div class="tab-pane fade" id="empleados" role="tabpanel">
       <div class="row">
         <div class="col-md-6">
-          <app-empleados-formulario (registroGuardado)="empleadosTabla.cargarRegistros()"></app-empleados-formulario>
+          <app-empleados-formulario (registroGuardado)="empleadosTabla.actualizarTabla()"></app-empleados-formulario>
         </div>
         <div class="col-md-6">
           <app-empleados-tabla #empleadosTabla></app-empleados-tabla>

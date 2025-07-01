@@ -27,9 +27,9 @@
             <td>{{ registro.dias }}</td>
             <td>{{ registro.diSol ? 'Sí' : 'No' }}</td>
             <td>{{ registro.bano ? 'Sí' : 'No' }}</td>
-            <td>${{ registro.ingresos.toLocaleString() }}</td>
-            <td>${{ registro.gastos.toLocaleString() }}</td>
-            <td>${{ registro.total.toLocaleString() }}</td>
+            <td>${{ (registro.ingresos || 0).toLocaleString() }}</td>
+            <td>${{ (registro.gastos || 0).toLocaleString() }}</td>
+            <td>${{ (registro.total || 0).toLocaleString() }}</td>
             <td>{{ registro.metodoPago }}</td>
             <td>
               <div class="btn-group" role="group">
@@ -83,9 +83,9 @@
         <p><strong>Días alojamiento:</strong> {{ registroSeleccionado.dias }}</p>
         <p><strong>Di sol:</strong> {{ registroSeleccionado.diSol ? 'Sí' : 'No' }}</p>
         <p><strong>Baño:</strong> {{ registroSeleccionado.bano ? 'Sí' : 'No' }}</p>
-        <p><strong>Ingresos:</strong> ${{ registroSeleccionado.ingresos.toLocaleString() }}</p>
-        <p><strong>Gastos:</strong> ${{ registroSeleccionado.gastos.toLocaleString() }}</p>
-        <p><strong>Total:</strong> ${{ registroSeleccionado.total.toLocaleString() }}</p>
+        <p><strong>Ingresos:</strong> ${{ (registroSeleccionado.ingresos || 0).toLocaleString() }}</p>
+        <p><strong>Gastos:</strong> ${{ (registroSeleccionado.gastos || 0).toLocaleString() }}</p>
+        <p><strong>Total:</strong> ${{ (registroSeleccionado.total || 0).toLocaleString() }}</p>
         <p><strong>Método de pago:</strong> {{ registroSeleccionado.metodoPago }}</p>
       </div>
       <div class="modal-footer">
@@ -192,7 +192,7 @@
                   name="diSolEdit"
                   (change)="actualizarIngresosEdit()">
                 <label class="form-check-label" for="diSolEdit">
-                  Servicio Di Sol (${{ tarifaDiSol.toLocaleString() }})
+                  Servicio Di Sol (${{ (tarifaDiSol || 0).toLocaleString() }})
                 </label>
               </div>
             </div>
@@ -206,7 +206,7 @@
                   name="banoEdit"
                   (change)="actualizarIngresosEdit()">
                 <label class="form-check-label" for="banoEdit">
-                  Servicio de Baño (${{ tarifaBano.toLocaleString() }})
+                  Servicio de Baño (${{ (tarifaBano || 0).toLocaleString() }})
                 </label>
               </div>
             </div>
@@ -227,13 +227,13 @@
             <div class="col-md-4 mb-3">
               <label class="form-label">Ingresos calculados</label>
               <div class="form-control-plaintext">
-                ${{ ingresosEdit.toLocaleString() }}
+                ${{ (ingresosEdit || 0).toLocaleString() }}
               </div>
             </div>
             <div class="col-md-4 mb-3">
               <label class="form-label">Total</label>
               <div class="form-control-plaintext fw-bold">
-                ${{ totalEdit.toLocaleString() }}
+                ${{ (totalEdit || 0).toLocaleString() }}
               </div>
             </div>
           </div>

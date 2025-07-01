@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, AfterViewInit, NgZone, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RegistroPerro } from '../registro-formulario/registro-formulario.component';
@@ -12,30 +12,46 @@ import { Firestore, collection, getDocs, query, orderBy, deleteDoc, doc, updateD
   templateUrl: './tabla-registros.component.html',
   styleUrl: './tabla-registros.component.scss'
 })
-export class TablaRegistrosComponent implements OnInit {
+export class TablaRegistrosComponent implements OnInit, AfterViewInit {
   registros: RegistroPerro[] = [];
   @Output() verDetalle = new EventEmitter<RegistroPerro>();
   @Output() editarRegistroEvent = new EventEmitter<RegistroPerro>();
 
-  constructor(private firestore: Firestore) {}
+  private firestore = inject(Firestore);
+  private ngZone = inject(NgZone);
 
   ngOnInit() {
+    // Component initialization
+  }
+
+  ngAfterViewInit() {
+    // Load data after view is initialized to avoid injection context warnings
     this.cargarRegistros();
   }
 
   async cargarRegistros() {
     try {
-      const registrosRef = collection(this.firestore, 'registros');
-      const q = query(registrosRef, orderBy('fechaCreacion', 'desc'));
-      const querySnapshot = await getDocs(q);
+      await this.ngZone.runOutsideAngular(async () => {
+        const registrosRef = collection(this.firestore, 'registros');
+        const q = query(registrosRef, orderBy('fechaCreacion', 'desc'));
+        const querySnapshot = await getDocs(q);
 
-      this.registros = querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          ...data,
-          id: doc.id,
-          fechaCreacion: data['fechaCreacion']?.toDate() || new Date()
-        } as RegistroPerro & { id: string };
+        const registros = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            ...data,
+            id: doc.id,
+            ingresos: data['ingresos'] || 0,
+            gastos: data['gastos'] || 0,
+            total: data['total'] || 0,
+            dias: data['dias'] || 0,
+            fechaCreacion: data['fechaCreacion']?.toDate() || new Date()
+          } as RegistroPerro & { id: string };
+        });
+
+        this.ngZone.run(() => {
+          this.registros = registros;
+        });
       });
     } catch (error) {
       console.error('Error al cargar registros:', error);
@@ -125,23 +141,25 @@ export class TablaRegistrosComponent implements OnInit {
     }
 
     try {
-      const tamanoTexto = this.opcionesTamano.find(op => op.valor === this.tamanoPerroEdit)?.texto || '';
+      await this.ngZone.runOutsideAngular(async () => {
+        const tamanoTexto = this.opcionesTamano.find(op => op.valor === this.tamanoPerroEdit)?.texto || '';
 
-      const datosActualizados = {
-        nombre: this.nombreMascotaEdit,
-        fecha: this.fechaIngresoEdit,
-        tamano: tamanoTexto,
-        dias: this.diasAlojamientoEdit,
-        diSol: this.servicioDiSolEdit,
-        bano: this.servicioBanoEdit,
-        ingresos: this.ingresosEdit,
-        gastos: this.gastosEdit,
-        total: this.totalEdit,
-        metodoPago: this.metodoPagoEdit
-      };
+        const datosActualizados = {
+          nombre: this.nombreMascotaEdit,
+          fecha: this.fechaIngresoEdit,
+          tamano: tamanoTexto,
+          dias: this.diasAlojamientoEdit,
+          diSol: this.servicioDiSolEdit,
+          bano: this.servicioBanoEdit,
+          ingresos: this.ingresosEdit,
+          gastos: this.gastosEdit,
+          total: this.totalEdit,
+          metodoPago: this.metodoPagoEdit
+        };
 
-      const docRef = doc(this.firestore, 'registros', this.registroEditando.id);
-      await updateDoc(docRef, datosActualizados);
+        const docRef = doc(this.firestore, 'registros', this.registroEditando.id);
+        await updateDoc(docRef, datosActualizados);
+      });
 
       await this.cargarRegistros();
       this.cerrarModalEdicion();
@@ -174,8 +192,10 @@ export class TablaRegistrosComponent implements OnInit {
   async eliminarRegistro(registro: any) {
     if (confirm(`¿Está seguro que desea eliminar el registro de ${registro.nombre}?`)) {
       try {
-        const docRef = doc(this.firestore, 'registros', registro.id);
-        await deleteDoc(docRef);
+        await this.ngZone.runOutsideAngular(async () => {
+          const docRef = doc(this.firestore, 'registros', registro.id);
+          await deleteDoc(docRef);
+        });
         await this.cargarRegistros();
         alert('Registro eliminado exitosamente');
       } catch (error) {
@@ -339,9 +359,9 @@ export class TablaRegistrosComponent implements OnInit {
       doc.setTextColor(60, 60, 60);
       doc.text(service.description, tableX + 2, tableY + 6);
       doc.text(service.quantity.toString(), tableX + colWidths[0] + 2, tableY + 6);
-      doc.text(`$${service.unitPrice.toLocaleString('es-CO')}`, tableX + colWidths[0] + colWidths[1] + 2, tableY + 6);
+      doc.text(`$${(service.unitPrice || 0).toLocaleString('es-CO')}`, tableX + colWidths[0] + colWidths[1] + 2, tableY + 6);
       doc.setFont('helvetica', 'bold');
-      doc.text(`$${service.total.toLocaleString('es-CO')}`, tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, tableY + 6);
+      doc.text(`$${(service.total || 0).toLocaleString('es-CO')}`, tableX + colWidths[0] + colWidths[1] + colWidths[2] + 2, tableY + 6);
       tableY += rowHeight;
     });
     // Bordes tabla
@@ -365,13 +385,13 @@ export class TablaRegistrosComponent implements OnInit {
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(60, 60, 60);
     doc.text('Gastos adicionales:', totX, totY);
-    doc.text(`$${reg.gastos.toLocaleString('es-CO')}`, totX + 35, totY);
+    doc.text(`$${(reg.gastos || 0).toLocaleString('es-CO')}`, totX + 35, totY);
     totY += 10;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
     doc.setTextColor(0, 102, 204);
     doc.text('TOTAL:', totX, totY);
-    doc.text(`$${reg.total.toLocaleString('es-CO')}`, totX + 35, totY);
+    doc.text(`$${(reg.total || 0).toLocaleString('es-CO')}`, totX + 35, totY);
 
     // Pie de página moderno
     let footerY = pageHeight - 30;

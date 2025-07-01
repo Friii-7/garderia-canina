@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, NgZone, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Firestore, collection, addDoc, updateDoc, doc } from '@angular/fire/firestore';
@@ -23,7 +23,8 @@ export interface ContabilidadRegistro {
 export class ContabilidadFormularioComponent {
   @Output() nuevoRegistro = new EventEmitter<ContabilidadRegistro>();
 
-  constructor(private firestore: Firestore) {}
+  private firestore = inject(Firestore);
+  private ngZone = inject(NgZone);
 
   registro: ContabilidadRegistro = {
     fecha: '',
@@ -39,7 +40,10 @@ export class ContabilidadFormularioComponent {
         this.registro.total = this.registro.ingreso - this.registro.gastos;
         this.registro.fechaCreacion = new Date();
 
-        const docRef = await addDoc(collection(this.firestore, 'contabilidad'), this.registro);
+        let docRef: any;
+        await this.ngZone.runOutsideAngular(async () => {
+          docRef = await addDoc(collection(this.firestore, 'contabilidad'), this.registro);
+        });
 
         const registroGuardado = {
           ...this.registro,

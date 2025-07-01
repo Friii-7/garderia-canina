@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, NgZone, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Firestore, collection, addDoc } from '@angular/fire/firestore';
@@ -31,12 +31,15 @@ export class EmpleadosFormularioComponent {
     pago: false
   };
 
-  constructor(private firestore: Firestore) {}
+  private firestore = inject(Firestore);
+  private ngZone = inject(NgZone);
 
   async onSubmit() {
     if (this.registro.fecha && this.registro.empleado && this.registro.turno) {
       try {
-        const docRef = await addDoc(collection(this.firestore, 'empleados'), this.registro);
+        await this.ngZone.runOutsideAngular(async () => {
+          await addDoc(collection(this.firestore, 'empleados'), this.registro);
+        });
         this.registroGuardado.emit();
         // Limpiar formulario
         this.registro = {

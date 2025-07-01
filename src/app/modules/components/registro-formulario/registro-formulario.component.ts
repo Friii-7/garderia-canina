@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, NgZone, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Firestore, addDoc, collection } from '@angular/fire/firestore';
@@ -27,7 +27,8 @@ export interface RegistroPerro {
 export class RegistroFormularioComponent {
   @Output() nuevoRegistro = new EventEmitter<RegistroPerro>();
 
-  constructor(private firestore: Firestore) {}
+  private firestore = inject(Firestore);
+  private ngZone = inject(NgZone);
 
   // Datos del formulario
   nombreMascota: string = '';
@@ -99,8 +100,10 @@ export class RegistroFormularioComponent {
 
     try {
       // Guardar en Firebase
-      const registrosRef = collection(this.firestore, 'registros');
-      await addDoc(registrosRef, registro);
+      await this.ngZone.runOutsideAngular(async () => {
+        const registrosRef = collection(this.firestore, 'registros');
+        await addDoc(registrosRef, registro);
+      });
 
       // Emitir evento para actualizar la tabla
       this.nuevoRegistro.emit(registro);
