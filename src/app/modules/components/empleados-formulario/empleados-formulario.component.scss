@@ -78,6 +78,24 @@
               font-weight: bold;
               font-size: 0.8em;
             }
+
+            .nomina {
+              color: #ffc107;
+              font-weight: bold;
+              font-size: 0.8em;
+            }
+
+            .nomina-recibida {
+              color: #28a745;
+              font-weight: bold;
+              font-size: 0.8em;
+            }
+
+            .nomina-pendiente {
+              color: #dc3545;
+              font-weight: bold;
+              font-size: 0.8em;
+            }
           }
 
           // Estilos para días trabajados
@@ -87,6 +105,17 @@
 
             .numero-dia {
               color: #155724;
+            }
+          }
+
+          // Estilos para días laborales (no registrados)
+          &.dia-laboral {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            border-style: dashed;
+
+            .numero-dia {
+              color: #856404;
             }
           }
 
@@ -125,6 +154,55 @@
           &.dia-trabajado.turno-noche.pago-realizado {
             background-color: #e2e3e5;
             border-color: #d6d8db;
+          }
+
+          // Fecha de nómina
+          &.fecha-nomina {
+            position: relative;
+
+            &::before {
+              content: '$';
+              position: absolute;
+              top: 2px;
+              left: 2px;
+              color: #ffc107;
+              font-weight: bold;
+              font-size: 0.7em;
+            }
+          }
+
+          // Día festivo
+          &.dia-festivo {
+            position: relative;
+
+            &::after {
+              content: '🎉';
+              position: absolute;
+              top: 2px;
+              right: 2px;
+              font-size: 0.6em;
+            }
+          }
+
+          // Nómina recibida
+          &.nomina-recibida {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+
+            .numero-dia {
+              color: #155724;
+            }
+          }
+
+          // Fecha de nómina pendiente
+          &.fecha-nomina-pendiente {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            border-style: dashed;
+
+            .numero-dia {
+              color: #721c24;
+            }
           }
 
           // Días vacíos
@@ -170,6 +248,31 @@
         &.pago-realizado {
           background-color: #d1ecf1;
           border-color: #bee5eb;
+        }
+
+        &.dia-laboral {
+          background-color: #fff3cd;
+          border-color: #ffeaa7;
+        }
+
+        &.fecha-nomina {
+          background-color: #fff3cd;
+          border-color: #ffc107;
+        }
+
+        &.dia-festivo {
+          background-color: #f8d7da;
+          border-color: #dc3545;
+        }
+
+        &.nomina-recibida {
+          background-color: #d4edda;
+          border-color: #c3e6cb;
+        }
+
+        &.fecha-nomina-pendiente {
+          background-color: #f8d7da;
+          border-color: #f5c6cb;
         }
       }
     }

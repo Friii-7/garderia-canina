@@ -1,7 +1,18 @@
 <div class="empleados-tabla">
-  <h3 class="mb-3">Registros de Empleados</h3>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Registros de Empleados</h3>
+    <div class="btn-group" role="group">
+      <button type="button" class="btn btn-outline-primary" [class.active]="!mostrarTablaNomina" (click)="mostrarTablaNomina = false">
+        Días de Trabajo
+      </button>
+      <button type="button" class="btn btn-outline-warning" [class.active]="mostrarTablaNomina" (click)="mostrarTablaNomina = true">
+        Registros de Nómina
+      </button>
+    </div>
+  </div>
 
-  <div class="row mb-4">
+  <!-- Estadísticas de Días de Trabajo -->
+  <div class="row mb-4" *ngIf="!mostrarTablaNomina">
     <div class="col-md-3">
       <div class="card text-center">
         <div class="card-body">
@@ -36,10 +47,46 @@
     </div>
   </div>
 
-  <!-- Resumen por empleado -->
-  <div class="row mb-4" *ngIf="getEmpleadosUnicos().length > 0">
+  <!-- Estadísticas de Nómina -->
+  <div class="row mb-4" *ngIf="mostrarTablaNomina">
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Total Nóminas</h5>
+          <p class="card-text text-secondary fs-4">{{ getTotalNominas() }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Nóminas Pagadas</h5>
+          <p class="card-text text-success fs-4">{{ getNominasPagadas() }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Nóminas Pendientes</h5>
+          <p class="card-text text-warning fs-4">{{ getNominasPendientes() }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Total Pagado</h5>
+          <p class="card-text text-info fs-4">${{ getTotalMontoNominas() | number:'1.0-0' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resumen por empleado - Días de Trabajo -->
+  <div class="row mb-4" *ngIf="!mostrarTablaNomina && getEmpleadosUnicos().length > 0">
     <div class="col-12">
-      <h5>Resumen por Empleado</h5>
+      <h5>Resumen por Empleado - Días de Trabajo</h5>
       <div class="row">
         <div class="col-md-4" *ngFor="let empleado of getEmpleadosUnicos()">
           <div class="card">
@@ -56,7 +103,28 @@
     </div>
   </div>
 
-  <div class="table-responsive">
+  <!-- Resumen por empleado - Nómina -->
+  <div class="row mb-4" *ngIf="mostrarTablaNomina && getEmpleadosUnicosNomina().length > 0">
+    <div class="col-12">
+      <h5>Resumen por Empleado - Nómina</h5>
+      <div class="row">
+        <div class="col-md-4" *ngFor="let empleado of getEmpleadosUnicosNomina()">
+          <div class="card">
+            <div class="card-body text-center">
+              <h6 class="card-title">{{ empleado }}</h6>
+              <p class="card-text">
+                <span class="text-success">{{ getNominasPagadasPorEmpleado(empleado) }}</span> /
+                <span class="text-secondary">{{ getNominasPorEmpleado(empleado) }}</span> nóminas pagadas
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Días de Trabajo -->
+  <div class="table-responsive" *ngIf="!mostrarTablaNomina">
     <table class="table table-striped table-hover">
       <thead class="table-dark">
         <tr>
@@ -98,6 +166,54 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Tabla de Nómina -->
+  <div class="table-responsive" *ngIf="mostrarTablaNomina">
+    <table class="table table-striped table-hover">
+      <thead class="table-dark">
+        <tr>
+          <th>Fecha</th>
+          <th>Empleado</th>
+          <th>Monto</th>
+          <th>Observaciones</th>
+          <th>Estado Pago</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let registro of registrosNomina">
+          <td>{{ registro.fecha | date:'dd/MM/yyyy' }}</td>
+          <td>{{ registro.empleado }}</td>
+          <td>
+            <span *ngIf="registro.monto" class="text-success fw-bold">${{ registro.monto | number:'1.0-0' }}</span>
+            <span *ngIf="!registro.monto" class="text-muted">-</span>
+          </td>
+          <td>
+            <span *ngIf="registro.observaciones" class="text-muted">{{ registro.observaciones }}</span>
+            <span *ngIf="!registro.observaciones" class="text-muted">-</span>
+          </td>
+          <td>
+            <span class="badge" [class.bg-success]="registro.pagoRealizado" [class.bg-warning]="!registro.pagoRealizado">
+              {{ registro.pagoRealizado ? 'Pagado' : 'Pendiente' }}
+            </span>
+          </td>
+          <td>
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="onEditarNomina(registro)" title="Editar">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onEliminarNomina(registro.id)" title="Eliminar">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="registrosNomina.length === 0">
+          <td colspan="6" class="text-center text-muted">No hay registros de nómina</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <!-- Modal de Edición -->
@@ -135,6 +251,49 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="cerrarModalEdicion()">Cancelar</button>
             <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Edición de Nómina -->
+<div class="modal fade" [class.show]="mostrarModalEdicionNomina" [style.display]="mostrarModalEdicionNomina ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar Registro de Nómina</h5>
+        <button type="button" class="btn-close" (click)="cerrarModalEdicionNomina()"></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="guardarEdicionNomina()">
+          <div class="mb-3">
+            <label for="fechaNominaEdit" class="form-label">Fecha</label>
+            <input type="date" class="form-control" id="fechaNominaEdit" [(ngModel)]="fechaNominaEdit" name="fechaNominaEdit" required>
+          </div>
+          <div class="mb-3">
+            <label for="empleadoNominaEdit" class="form-label">Empleado</label>
+            <select class="form-select" id="empleadoNominaEdit" [(ngModel)]="empleadoNominaEdit" name="empleadoNominaEdit" required>
+              <option value="">Seleccionar empleado</option>
+              <option *ngFor="let empleado of empleados" [value]="empleado">{{ empleado }}</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="montoNominaEdit" class="form-label">Monto</label>
+            <input type="number" class="form-control" id="montoNominaEdit" [(ngModel)]="montoNominaEdit" name="montoNominaEdit" placeholder="0">
+          </div>
+          <div class="mb-3">
+            <label for="observacionesNominaEdit" class="form-label">Observaciones</label>
+            <textarea class="form-control" id="observacionesNominaEdit" [(ngModel)]="observacionesNominaEdit" name="observacionesNominaEdit" rows="3" placeholder="Observaciones"></textarea>
+          </div>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="pagoNominaEdit" [(ngModel)]="pagoNominaEdit" name="pagoNominaEdit">
+            <label class="form-check-label" for="pagoNominaEdit">Pago realizado</label>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="cerrarModalEdicionNomina()">Cancelar</button>
+            <button type="submit" class="btn btn-warning">Guardar Cambios</button>
           </div>
         </form>
       </div>

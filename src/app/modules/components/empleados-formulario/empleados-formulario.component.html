@@ -28,8 +28,8 @@
             name="empleado"
             required>
             <option value="">Seleccionar empleado</option>
-            <option *ngFor="let empleado of empleados" [value]="empleado">
-              {{ empleado }}
+            <option *ngFor="let empleado of empleados" [value]="empleado" [disabled]="isSoloNomina(empleado)">
+              {{ empleado }} {{ isSoloNomina(empleado) ? '(Solo nómina)' : '' }}
             </option>
           </select>
         </div>
@@ -70,12 +70,86 @@
     </div>
   </div>
 
+  <!-- Formulario para agregar nómina -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5>Registrar Nómina</h5>
+    </div>
+    <div class="card-body">
+      <form (ngSubmit)="agregarNomina()" class="row g-3">
+        <div class="col-md-3">
+          <label for="fechaNomina" class="form-label">Fecha</label>
+          <input
+            type="date"
+            class="form-control"
+            id="fechaNomina"
+            [(ngModel)]="nuevoRegistroNomina.fecha"
+            name="fechaNomina"
+            required>
+        </div>
+
+        <div class="col-md-3">
+          <label for="empleadoNomina" class="form-label">Empleado</label>
+          <select
+            class="form-select"
+            id="empleadoNomina"
+            [(ngModel)]="nuevoRegistroNomina.empleado"
+            name="empleadoNomina"
+            required>
+            <option value="">Seleccionar empleado</option>
+            <option *ngFor="let empleado of empleados" [value]="empleado">
+              {{ empleado }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label for="monto" class="form-label">Monto (opcional)</label>
+          <input
+            type="number"
+            class="form-control"
+            id="monto"
+            [(ngModel)]="nuevoRegistroNomina.monto"
+            name="monto"
+            placeholder="0">
+        </div>
+
+        <div class="col-md-3">
+          <label for="observaciones" class="form-label">Observaciones</label>
+          <input
+            type="text"
+            class="form-control"
+            id="observaciones"
+            [(ngModel)]="nuevoRegistroNomina.observaciones"
+            name="observaciones"
+            placeholder="Observaciones">
+        </div>
+
+        <div class="col-12">
+          <button type="submit" class="btn btn-warning">Registrar Nómina</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Calendarios por empleado -->
   <div class="calendarios-empleados">
     <div *ngFor="let empleado of empleados" class="calendario-empleado mb-4">
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <h4>{{ empleado }}</h4>
+          <div class="empleado-info">
+            <h4>{{ empleado }}</h4>
+                                    <small class="text-muted">
+              <span *ngIf="isSoloNomina(empleado)">
+                Solo registra nómina | Fechas: {{ getFechasNominaTexto(empleado) }}
+              </span>
+              <span *ngIf="!isSoloNomina(empleado)">
+                Días laborales: {{ getDiasLaboralesTexto(empleado) }} |
+                Nómina: {{ getFechasNominaTexto(empleado) }}
+                <span *ngIf="getTurnoPredeterminado(empleado)"> | Turno: {{ getTurnoPredeterminado(empleado) }}</span>
+              </span>
+            </small>
+          </div>
           <div class="controles-calendario">
             <button class="btn btn-sm btn-outline-secondary" (click)="cambiarMes(-1)">
               <i class="fas fa-chevron-left"></i> Anterior
@@ -97,15 +171,26 @@
 
                         <!-- Días del mes -->
             <div class="calendario-body">
-              <div
+                            <div
                 class="dia-calendario"
                 *ngFor="let fecha of getDiasDelMes()"
                 [class]="getClaseDia(fecha, empleado)"
                 [title]="getTooltipDia(fecha, empleado)">
                 <div class="numero-dia" *ngIf="fecha">{{ fecha.getDate() }}</div>
-                <div class="info-dia" *ngIf="fecha && isDiaTrabajado(fecha, empleado)">
-                  <small class="turno">{{ isDiaTrabajado(fecha, empleado)?.turno }}</small>
-                  <small class="pago" *ngIf="isDiaTrabajado(fecha, empleado)?.pago">✓</small>
+                                <div class="info-dia" *ngIf="fecha">
+                  <!-- Para empleados que solo registran nómina (Saul) -->
+                  <small class="nomina-recibida" *ngIf="isSoloNomina(empleado) && isNominaRecibida(fecha, empleado)">✓</small>
+                  <small class="nomina-pendiente" *ngIf="isSoloNomina(empleado) && isFechaNomina(fecha, empleado) && !isNominaRecibida(fecha, empleado)">$</small>
+
+                  <!-- Para empleados que trabajan (Farzin y Evelyn) -->
+                  <small class="turno" *ngIf="!isSoloNomina(empleado) && isDiaTrabajado(fecha, empleado)">
+                    {{ isDiaTrabajado(fecha, empleado)?.turno }}
+                  </small>
+                  <small class="pago" *ngIf="!isSoloNomina(empleado) && isDiaTrabajado(fecha, empleado)?.pago">✓</small>
+                  <small class="nomina" *ngIf="!isSoloNomina(empleado) && isFechaNomina(fecha, empleado)">$</small>
+
+                  <!-- Nómina recibida para todos los empleados -->
+                  <small class="nomina-recibida" *ngIf="!isSoloNomina(empleado) && isNominaRecibida(fecha, empleado)">💰</small>
                 </div>
               </div>
             </div>
@@ -132,6 +217,42 @@
           <div class="leyenda-item">
             <span class="indicador dia-trabajado turno-noche"></span>
             <span>Día trabajado (Turno noche)</span>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="leyenda-item">
+            <span class="indicador dia-laboral"></span>
+            <span>Día laboral (no registrado)</span>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="leyenda-item">
+            <span class="indicador fecha-nomina"></span>
+            <span>Fecha de nómina</span>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="leyenda-item">
+            <span class="indicador dia-festivo"></span>
+            <span>Día festivo</span>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="leyenda-item">
+            <span class="indicador nomina-recibida"></span>
+            <span>Nómina recibida (Saul)</span>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="leyenda-item">
+            <span>💰</span>
+            <span>Nómina recibida (Farzin/Evelyn)</span>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="leyenda-item">
+            <span class="indicador fecha-nomina-pendiente"></span>
+            <span>Fecha nómina (pendiente)</span>
           </div>
         </div>
         <div class="col-md-3">

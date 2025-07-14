@@ -17,6 +17,24 @@ export interface DiaTrabajo {
   pago: boolean;
 }
 
+export interface RegistroNomina {
+  id?: string;
+  fecha: string;
+  empleado: string;
+  monto?: number;
+  observaciones?: string;
+}
+
+export interface EmpleadoInfo {
+  nombre: string;
+  diasLaborales: number[]; // 0=Domingo, 1=Lunes, ..., 6=Sábado
+  fechasNomina: number[]; // Días del mes para pago de nómina
+  colorEspecial?: string;
+  turnoPredeterminado?: string; // Turno predeterminado para el empleado
+  diasFestivos?: boolean; // Si incluye días festivos
+  soloNomina?: boolean; // Si solo registra nómina, no días de trabajo
+}
+
 @Component({
   selector: 'app-empleados-formulario',
   standalone: true,
@@ -31,11 +49,50 @@ export class EmpleadosFormularioComponent implements OnInit {
   turnos = ['Día', 'Noche'];
   empleadoSeleccionado: string = '';
 
+  // Información específica de cada empleado
+  empleadosInfo: EmpleadoInfo[] = [
+    {
+      nombre: 'Farzin',
+      diasLaborales: [0, 1, 2, 3, 4, 5, 6], // Todos los días
+      fechasNomina: [1, 15],
+      turnoPredeterminado: 'Noche' // Solo turno noche
+    },
+    {
+      nombre: 'Saul',
+      diasLaborales: [1, 2, 3, 4, 5, 6], // Lunes a Sábado
+      fechasNomina: [6, 21],
+      colorEspecial: '#ff6b6b',
+      soloNomina: true // Solo registra nómina
+    },
+    {
+      nombre: 'Evelyn',
+      diasLaborales: [0, 6], // Solo domingos y sábados
+      fechasNomina: [1, 15],
+      diasFestivos: true // Incluye días festivos
+    }
+  ];
+
   // Calendario
   currentDate = new Date();
   currentMonth: number = this.currentDate.getMonth();
   currentYear: number = this.currentDate.getFullYear();
   diasTrabajados: { [empleado: string]: DiaTrabajo[] } = {};
+  registrosNomina: { [empleado: string]: RegistroNomina[] } = {};
+
+  // Días festivos 2025 (formato: 'YYYY-MM-DD')
+  diasFestivos2025 = [
+    '2025-01-01', // Año Nuevo
+    '2025-01-06', // Día de Reyes
+    '2025-02-17', // Lunes de Carnaval
+    '2025-04-17', // Jueves Santo
+    '2025-04-18', // Viernes Santo
+    '2025-05-01', // Día del Trabajo
+    '2025-05-05', // Cinco de Mayo
+    '2025-09-16', // Día de la Independencia
+    '2025-11-02', // Día de los Muertos
+    '2025-11-20', // Día de la Revolución
+    '2025-12-25', // Navidad
+  ];
 
   // Formulario para agregar día
   nuevoDia: EmpleadoRegistro = {
@@ -43,6 +100,14 @@ export class EmpleadosFormularioComponent implements OnInit {
     empleado: '',
     turno: '',
     pago: false
+  };
+
+  // Formulario para agregar nómina
+  nuevoRegistroNomina: RegistroNomina = {
+    fecha: '',
+    empleado: '',
+    monto: 0,
+    observaciones: ''
   };
 
   private firestore = inject(Firestore);
@@ -54,6 +119,7 @@ export class EmpleadosFormularioComponent implements OnInit {
 
   async cargarDiasTrabajados() {
     try {
+      // Cargar días trabajados
       const registrosRef = collection(this.firestore, 'empleados');
       const querySnapshot = await getDocs(registrosRef);
 
@@ -71,8 +137,29 @@ export class EmpleadosFormularioComponent implements OnInit {
           pago: data.pago
         });
       });
+
+      // Cargar registros de nómina
+      const nominaRef = collection(this.firestore, 'nomina');
+      const nominaSnapshot = await getDocs(nominaRef);
+
+      this.registrosNomina = {};
+
+      nominaSnapshot.forEach((doc) => {
+        const data = doc.data() as RegistroNomina;
+        if (!this.registrosNomina[data.empleado]) {
+          this.registrosNomina[data.empleado] = [];
+        }
+
+        this.registrosNomina[data.empleado].push({
+          id: doc.id,
+          fecha: data.fecha,
+          empleado: data.empleado,
+          monto: data.monto,
+          observaciones: data.observaciones
+        });
+      });
     } catch (error) {
-      console.error('Error al cargar días trabajados:', error);
+      console.error('Error al cargar datos:', error);
     }
   }
 
@@ -107,20 +194,152 @@ export class EmpleadosFormularioComponent implements OnInit {
     return this.diasTrabajados[empleado].find(dia => dia.fecha === fechaStr) || null;
   }
 
-  getClaseDia(fecha: Date | null, empleado: string): string {
+        getClaseDia(fecha: Date | null, empleado: string): string {
     if (!fecha) return 'dia-vacio';
 
     const diaTrabajo = this.isDiaTrabajado(fecha, empleado);
-    if (!diaTrabajo) return '';
+    const nominaRecibida = this.isNominaRecibida(fecha, empleado);
+    const empleadoInfo = this.getEmpleadoInfo(empleado);
+    let clase = '';
 
-    let clase = 'dia-trabajado';
-    if (diaTrabajo.pago) {
-      clase += ' pago-realizado';
+    // Verificar si es un día laboral para este empleado
+    const esDiaLaboral = this.isDiaLaboral(fecha, empleado);
+
+    // Verificar si es fecha de nómina
+    const esFechaNomina = empleadoInfo?.fechasNomina.includes(fecha.getDate()) || false;
+
+    // Verificar si es día festivo
+    const esDiaFestivo = this.isDiaFestivo(fecha);
+
+    // Si el empleado solo registra nómina (Saul)
+    if (this.isSoloNomina(empleado)) {
+      if (nominaRecibida) {
+        clase = 'nomina-recibida';
+      } else if (esFechaNomina) {
+        clase = 'fecha-nomina-pendiente';
+      }
+    } else {
+      // Lógica para empleados que trabajan (Farzin y Evelyn)
+      if (diaTrabajo) {
+        clase = 'dia-trabajado';
+        if (diaTrabajo.pago) {
+          clase += ' pago-realizado';
+        }
+        if (diaTrabajo.turno === 'Noche') {
+          clase += ' turno-noche';
+        }
+      } else if (esDiaLaboral) {
+        clase = 'dia-laboral';
+      }
+
+      // Agregar clase de nómina si recibió nómina en ese día
+      if (nominaRecibida) {
+        clase += ' nomina-recibida';
+      }
     }
-    if (diaTrabajo.turno === 'Noche') {
-      clase += ' turno-noche';
+
+    // Agregar fecha de nómina para todos
+    if (esFechaNomina) {
+      clase += ' fecha-nomina';
     }
+
+    if (esDiaFestivo) {
+      clase += ' dia-festivo';
+    }
+
     return clase;
+  }
+
+  getEmpleadoInfo(empleado: string): EmpleadoInfo | undefined {
+    return this.empleadosInfo.find(info => info.nombre === empleado);
+  }
+
+  isDiaLaboral(fecha: Date, empleado: string): boolean {
+    const empleadoInfo = this.getEmpleadoInfo(empleado);
+    if (!empleadoInfo) return false;
+
+    // Verificar si es un día laboral regular
+    const esDiaLaboralRegular = empleadoInfo.diasLaborales.includes(fecha.getDay());
+
+    // Verificar si es día festivo y el empleado trabaja días festivos
+    const esDiaFestivo = this.isDiaFestivo(fecha);
+    const trabajaDiasFestivos = empleadoInfo.diasFestivos || false;
+
+    return esDiaLaboralRegular || (esDiaFestivo && trabajaDiasFestivos);
+  }
+
+  isDiaFestivo(fecha: Date): boolean {
+    const fechaStr = fecha.toISOString().split('T')[0];
+    return this.diasFestivos2025.includes(fechaStr);
+  }
+
+  isFechaNomina(fecha: Date, empleado: string): boolean {
+    const empleadoInfo = this.getEmpleadoInfo(empleado);
+    return empleadoInfo?.fechasNomina.includes(fecha.getDate()) || false;
+  }
+
+    getDiasLaboralesTexto(empleado: string): string {
+    const empleadoInfo = this.getEmpleadoInfo(empleado);
+    if (!empleadoInfo) return 'No definido';
+
+    const diasNombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    let texto = empleadoInfo.diasLaborales.map(dia => diasNombres[dia]).join(', ');
+
+    if (empleadoInfo.diasFestivos) {
+      texto += ' + festivos';
+    }
+
+    return texto;
+  }
+
+    getFechasNominaTexto(empleado: string): string {
+    const empleadoInfo = this.getEmpleadoInfo(empleado);
+    if (!empleadoInfo) return 'No definido';
+
+    return empleadoInfo.fechasNomina.join(' y ');
+  }
+
+  getTurnoPredeterminado(empleado: string): string | null {
+    const empleadoInfo = this.getEmpleadoInfo(empleado);
+    return empleadoInfo?.turnoPredeterminado || null;
+  }
+
+  isSoloNomina(empleado: string): boolean {
+    const empleadoInfo = this.getEmpleadoInfo(empleado);
+    return empleadoInfo?.soloNomina || false;
+  }
+
+  isNominaRecibida(fecha: Date, empleado: string): RegistroNomina | null {
+    if (!this.registrosNomina[empleado]) return null;
+
+    const fechaStr = fecha.toISOString().split('T')[0];
+    return this.registrosNomina[empleado].find(registro => registro.fecha === fechaStr) || null;
+  }
+
+  async agregarNomina() {
+    if (this.nuevoRegistroNomina.fecha && this.nuevoRegistroNomina.empleado) {
+      try {
+        await this.ngZone.runOutsideAngular(async () => {
+          await addDoc(collection(this.firestore, 'nomina'), this.nuevoRegistroNomina);
+        });
+
+        // Recargar datos
+        await this.cargarDiasTrabajados();
+
+        // Limpiar formulario
+        this.nuevoRegistroNomina = {
+          fecha: '',
+          empleado: '',
+          monto: 0,
+          observaciones: ''
+        };
+
+        this.registroGuardado.emit();
+        alert('Registro de nómina agregado exitosamente');
+      } catch (error) {
+        alert('Error al agregar el registro de nómina');
+      }
+    }
   }
 
   cambiarMes(direccion: number) {
@@ -168,20 +387,66 @@ export class EmpleadosFormularioComponent implements OnInit {
     return meses[this.currentMonth];
   }
 
-  getTooltipDia(fecha: Date | null, empleado: string): string {
+        getTooltipDia(fecha: Date | null, empleado: string): string {
     if (!fecha) return '';
 
     const diaTrabajo = this.isDiaTrabajado(fecha, empleado);
-    if (!diaTrabajo) {
-      return `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()} - No trabajó`;
-    }
+    const nominaRecibida = this.isNominaRecibida(fecha, empleado);
+    const empleadoInfo = this.getEmpleadoInfo(empleado);
+    const esDiaLaboral = this.isDiaLaboral(fecha, empleado);
+    const esFechaNomina = this.isFechaNomina(fecha, empleado);
+    const esDiaFestivo = this.isDiaFestivo(fecha);
 
     let tooltip = `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
-    tooltip += ` - Turno: ${diaTrabajo.turno}`;
-    if (diaTrabajo.pago) {
-      tooltip += ' - Pago realizado';
+
+    // Si el empleado solo registra nómina (Saul)
+    if (this.isSoloNomina(empleado)) {
+      if (nominaRecibida) {
+        tooltip += ` - Nómina recibida`;
+        if (nominaRecibida.monto) {
+          tooltip += ` ($${nominaRecibida.monto})`;
+        }
+        if (nominaRecibida.observaciones) {
+          tooltip += ` - ${nominaRecibida.observaciones}`;
+        }
+      } else if (esFechaNomina) {
+        tooltip += ' - Fecha de nómina (pendiente)';
+      } else {
+        tooltip += ' - No es fecha de nómina';
+      }
     } else {
-      tooltip += ' - Pago pendiente';
+      // Lógica para empleados que trabajan (Farzin y Evelyn)
+      if (diaTrabajo) {
+        tooltip += ` - Trabajó (${diaTrabajo.turno})`;
+        if (diaTrabajo.pago) {
+          tooltip += ' - Pago realizado';
+        } else {
+          tooltip += ' - Pago pendiente';
+        }
+      } else if (esDiaLaboral) {
+        tooltip += ' - Día laboral (no registrado)';
+      } else {
+        tooltip += ' - No es día laboral';
+      }
+
+      // Agregar información de nómina si recibió
+      if (nominaRecibida) {
+        tooltip += ' - Nómina recibida';
+        if (nominaRecibida.monto) {
+          tooltip += ` ($${nominaRecibida.monto})`;
+        }
+        if (nominaRecibida.observaciones) {
+          tooltip += ` - ${nominaRecibida.observaciones}`;
+        }
+      }
+
+      if (esFechaNomina) {
+        tooltip += ' - Fecha de nómina';
+      }
+    }
+
+    if (esDiaFestivo) {
+      tooltip += ' - Día festivo';
     }
 
     return tooltip;
