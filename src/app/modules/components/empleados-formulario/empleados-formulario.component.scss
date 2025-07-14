@@ -126,6 +126,18 @@
             background-color: #e2e3e5;
             border-color: #d6d8db;
           }
+
+          // Días vacíos
+          &.dia-vacio {
+            background-color: #f8f9fa;
+            border-color: #e9ecef;
+            cursor: default;
+
+            &:hover {
+              transform: none;
+              box-shadow: none;
+            }
+          }
         }
       }
     }

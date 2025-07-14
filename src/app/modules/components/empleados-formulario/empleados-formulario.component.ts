@@ -76,11 +76,18 @@ export class EmpleadosFormularioComponent implements OnInit {
     }
   }
 
-  getDiasDelMes(): Date[] {
+  getDiasDelMes(): (Date | null)[] {
     const primerDia = new Date(this.currentYear, this.currentMonth, 1);
     const ultimoDia = new Date(this.currentYear, this.currentMonth + 1, 0);
-    const dias: Date[] = [];
+    const dias: (Date | null)[] = [];
 
+    // Agregar días vacíos al inicio para alinear con los días de la semana
+    const primerDiaSemana = primerDia.getDay(); // 0 = Domingo, 1 = Lunes, etc.
+    for (let i = 0; i < primerDiaSemana; i++) {
+      dias.push(null);
+    }
+
+    // Agregar todos los días del mes
     for (let i = 1; i <= ultimoDia.getDate(); i++) {
       dias.push(new Date(this.currentYear, this.currentMonth, i));
     }
@@ -93,14 +100,16 @@ export class EmpleadosFormularioComponent implements OnInit {
     return dias[fecha.getDay()];
   }
 
-  isDiaTrabajado(fecha: Date, empleado: string): DiaTrabajo | null {
-    if (!this.diasTrabajados[empleado]) return null;
+  isDiaTrabajado(fecha: Date | null, empleado: string): DiaTrabajo | null {
+    if (!fecha || !this.diasTrabajados[empleado]) return null;
 
     const fechaStr = fecha.toISOString().split('T')[0];
     return this.diasTrabajados[empleado].find(dia => dia.fecha === fechaStr) || null;
   }
 
-  getClaseDia(fecha: Date, empleado: string): string {
+  getClaseDia(fecha: Date | null, empleado: string): string {
+    if (!fecha) return 'dia-vacio';
+
     const diaTrabajo = this.isDiaTrabajado(fecha, empleado);
     if (!diaTrabajo) return '';
 
@@ -159,7 +168,9 @@ export class EmpleadosFormularioComponent implements OnInit {
     return meses[this.currentMonth];
   }
 
-  getTooltipDia(fecha: Date, empleado: string): string {
+  getTooltipDia(fecha: Date | null, empleado: string): string {
+    if (!fecha) return '';
+
     const diaTrabajo = this.isDiaTrabajado(fecha, empleado);
     if (!diaTrabajo) {
       return `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()} - No trabajó`;

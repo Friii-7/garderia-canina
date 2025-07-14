@@ -95,15 +95,15 @@
               </div>
             </div>
 
-            <!-- Días del mes -->
+                        <!-- Días del mes -->
             <div class="calendario-body">
               <div
                 class="dia-calendario"
                 *ngFor="let fecha of getDiasDelMes()"
                 [class]="getClaseDia(fecha, empleado)"
                 [title]="getTooltipDia(fecha, empleado)">
-                <div class="numero-dia">{{ fecha.getDate() }}</div>
-                <div class="info-dia" *ngIf="isDiaTrabajado(fecha, empleado)">
+                <div class="numero-dia" *ngIf="fecha">{{ fecha.getDate() }}</div>
+                <div class="info-dia" *ngIf="fecha && isDiaTrabajado(fecha, empleado)">
                   <small class="turno">{{ isDiaTrabajado(fecha, empleado)?.turno }}</small>
                   <small class="pago" *ngIf="isDiaTrabajado(fecha, empleado)?.pago">✓</small>
                 </div>
