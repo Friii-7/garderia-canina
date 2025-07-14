@@ -1,64 +1,146 @@
 <div class="empleados-formulario">
-  <h2 class="mb-4">Formulario de Empleados</h2>
+  <h2 class="mb-4">Calendario de Empleados</h2>
 
-  <form (ngSubmit)="onSubmit()" class="row g-3">
-    <div class="col-md-6">
-      <label for="fecha" class="form-label">Fecha</label>
-      <input
-        type="date"
-        class="form-control"
-        id="fecha"
-        [(ngModel)]="registro.fecha"
-        name="fecha"
-        required>
+  <!-- Formulario para agregar día de trabajo -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5>Agregar Día de Trabajo</h5>
     </div>
+    <div class="card-body">
+      <form (ngSubmit)="agregarDia()" class="row g-3">
+        <div class="col-md-3">
+          <label for="fecha" class="form-label">Fecha</label>
+          <input
+            type="date"
+            class="form-control"
+            id="fecha"
+            [(ngModel)]="nuevoDia.fecha"
+            name="fecha"
+            required>
+        </div>
 
-    <div class="col-md-6">
-      <label for="empleado" class="form-label">Empleado</label>
-      <select
-        class="form-select"
-        id="empleado"
-        [(ngModel)]="registro.empleado"
-        name="empleado"
-        required>
-        <option value="">Seleccionar empleado</option>
-        <option *ngFor="let empleado of empleados" [value]="empleado">
-          {{ empleado }}
-        </option>
-      </select>
+        <div class="col-md-3">
+          <label for="empleado" class="form-label">Empleado</label>
+          <select
+            class="form-select"
+            id="empleado"
+            [(ngModel)]="nuevoDia.empleado"
+            name="empleado"
+            required>
+            <option value="">Seleccionar empleado</option>
+            <option *ngFor="let empleado of empleados" [value]="empleado">
+              {{ empleado }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label for="turno" class="form-label">Turno</label>
+          <select
+            class="form-select"
+            id="turno"
+            [(ngModel)]="nuevoDia.turno"
+            name="turno"
+            required>
+            <option value="">Seleccionar turno</option>
+            <option *ngFor="let turno of turnos" [value]="turno">
+              {{ turno }}
+            </option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <div class="form-check mt-4">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="pago"
+              [(ngModel)]="nuevoDia.pago"
+              name="pago">
+            <label class="form-check-label" for="pago">
+              Pago realizado
+            </label>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <button type="submit" class="btn btn-success">Agregar Día</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <div class="col-md-6">
-      <label for="turno" class="form-label">Turno</label>
-      <select
-        class="form-select"
-        id="turno"
-        [(ngModel)]="registro.turno"
-        name="turno"
-        required>
-        <option value="">Seleccionar turno</option>
-        <option *ngFor="let turno of turnos" [value]="turno">
-          {{ turno }}
-        </option>
-      </select>
-    </div>
+  <!-- Calendarios por empleado -->
+  <div class="calendarios-empleados">
+    <div *ngFor="let empleado of empleados" class="calendario-empleado mb-4">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4>{{ empleado }}</h4>
+          <div class="controles-calendario">
+            <button class="btn btn-sm btn-outline-secondary" (click)="cambiarMes(-1)">
+              <i class="fas fa-chevron-left"></i> Anterior
+            </button>
+            <span class="mx-3">{{ getNombreMes() }} {{ currentYear }}</span>
+            <button class="btn btn-sm btn-outline-secondary" (click)="cambiarMes(1)">
+              Siguiente <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="calendario">
+            <!-- Encabezados de días de la semana -->
+            <div class="calendario-header">
+              <div class="dia-header" *ngFor="let dia of ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']">
+                {{ dia }}
+              </div>
+            </div>
 
-    <div class="col-md-6">
-      <div class="form-check mt-4">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          id="pago"
-          [(ngModel)]="registro.pago"
-          name="pago">
-        <label class="form-check-label" for="pago">
-          Pago realizado
-        </label>
+            <!-- Días del mes -->
+            <div class="calendario-body">
+              <div
+                class="dia-calendario"
+                *ngFor="let fecha of getDiasDelMes()"
+                [class]="getClaseDia(fecha, empleado)"
+                [title]="getTooltipDia(fecha, empleado)">
+                <div class="numero-dia">{{ fecha.getDate() }}</div>
+                <div class="info-dia" *ngIf="isDiaTrabajado(fecha, empleado)">
+                  <small class="turno">{{ isDiaTrabajado(fecha, empleado)?.turno }}</small>
+                  <small class="pago" *ngIf="isDiaTrabajado(fecha, empleado)?.pago">✓</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class="col-12">
-      <button type="submit" class="btn btn-success">Guardar Registro</button>
+  <!-- Leyenda -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <h5>Leyenda</h5>
     </div>
-  </form>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="leyenda-item">
+            <span class="indicador dia-trabajado"></span>
+            <span>Día trabajado (Turno día)</span>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="leyenda-item">
+            <span class="indicador dia-trabajado turno-noche"></span>
+            <span>Día trabajado (Turno noche)</span>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="leyenda-item">
+            <span class="indicador pago-realizado"></span>
+            <span>Pago realizado</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

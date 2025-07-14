@@ -1,0 +1,199 @@
+.empleados-formulario {
+  padding: 20px;
+
+  .calendarios-empleados {
+    .calendario-empleado {
+      .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+      }
+
+      .controles-calendario {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+    }
+
+    .calendario {
+      .calendario-header {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+        margin-bottom: 10px;
+
+        .dia-header {
+          text-align: center;
+          font-weight: bold;
+          padding: 10px;
+          background-color: #e9ecef;
+          border-radius: 5px;
+          font-size: 0.9em;
+        }
+      }
+
+      .calendario-body {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+
+        .dia-calendario {
+          min-height: 60px;
+          border: 1px solid #dee2e6;
+          border-radius: 5px;
+          padding: 5px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          background-color: #fff;
+          transition: all 0.2s ease;
+
+          &:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          }
+
+          .numero-dia {
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.1em;
+          }
+
+          .info-dia {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+
+            .turno {
+              font-size: 0.7em;
+              padding: 2px 4px;
+              border-radius: 3px;
+              background-color: #007bff;
+              color: white;
+            }
+
+            .pago {
+              color: #28a745;
+              font-weight: bold;
+              font-size: 0.8em;
+            }
+          }
+
+          // Estilos para días trabajados
+          &.dia-trabajado {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+
+            .numero-dia {
+              color: #155724;
+            }
+          }
+
+          // Estilos para turno noche
+          &.turno-noche {
+            background-color: #cce5ff;
+            border-color: #b3d7ff;
+
+            .numero-dia {
+              color: #004085;
+            }
+
+            .info-dia .turno {
+              background-color: #6f42c1;
+            }
+          }
+
+          // Estilos para pago realizado
+          &.pago-realizado {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            position: relative;
+
+            &::after {
+              content: '✓';
+              position: absolute;
+              top: 2px;
+              right: 2px;
+              color: #28a745;
+              font-weight: bold;
+              font-size: 0.8em;
+            }
+          }
+
+          // Combinación de estilos
+          &.dia-trabajado.turno-noche.pago-realizado {
+            background-color: #e2e3e5;
+            border-color: #d6d8db;
+          }
+        }
+      }
+    }
+  }
+
+  // Leyenda
+  .leyenda {
+    .leyenda-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+
+      .indicador {
+        width: 20px;
+        height: 20px;
+        border-radius: 3px;
+        border: 1px solid #dee2e6;
+
+        &.dia-trabajado {
+          background-color: #d4edda;
+          border-color: #c3e6cb;
+        }
+
+        &.turno-noche {
+          background-color: #cce5ff;
+          border-color: #b3d7ff;
+        }
+
+        &.pago-realizado {
+          background-color: #d1ecf1;
+          border-color: #bee5eb;
+        }
+      }
+    }
+  }
+
+  // Responsive
+  @media (max-width: 768px) {
+    .calendario {
+      .calendario-header .dia-header {
+        font-size: 0.8em;
+        padding: 5px;
+      }
+
+      .calendario-body .dia-calendario {
+        min-height: 50px;
+        padding: 3px;
+
+        .numero-dia {
+          font-size: 0.9em;
+        }
+
+        .info-dia {
+          .turno {
+            font-size: 0.6em;
+          }
+        }
+      }
+    }
+
+    .controles-calendario {
+      flex-direction: column;
+      gap: 5px;
+
+      span {
+        order: -1;
+      }
+    }
+  }
+}
