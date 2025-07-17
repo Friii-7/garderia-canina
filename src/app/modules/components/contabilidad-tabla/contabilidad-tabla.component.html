@@ -1,10 +1,21 @@
 <div class="contabilidad-tabla">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>Registros de Contabilidad</h3>
-    <button type="button" class="btn btn-success" (click)="mostrarConfirmacionExcel()" [disabled]="registros.length === 0">
-      <i class="bi bi-file-earmark-excel me-2"></i>
-      Generar Excel
-    </button>
+    <div class="btn-group" role="group">
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="mostrarConfirmacionPDF()"
+        [disabled]="registros.length === 0"
+        title="Generar reporte PDF con todos los registros">
+        <i class="bi bi-file-earmark-pdf me-2"></i>
+        Generar PDF
+      </button>
+      <button type="button" class="btn btn-success" (click)="mostrarConfirmacionExcel()" [disabled]="registros.length === 0">
+        <i class="bi bi-file-earmark-excel me-2"></i>
+        Generar Excel
+      </button>
+    </div>
   </div>
 
   <div class="row mb-4">
@@ -123,4 +134,13 @@
   (confirmar)="confirmarGenerarExcel()"
   (cancelar)="cancelarGenerarExcel()"
   (cerrar)="cancelarGenerarExcel()">
+</app-confirmacion-modal>
+
+<!-- Modal de confirmación para PDF -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalPDF"
+  [datos]="datosModalPDF"
+  (confirmar)="confirmarGenerarPDF()"
+  (cancelar)="cancelarGenerarPDF()"
+  (cerrar)="cancelarGenerarPDF()">
 </app-confirmacion-modal>

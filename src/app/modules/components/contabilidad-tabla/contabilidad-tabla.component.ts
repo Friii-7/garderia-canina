@@ -5,6 +5,7 @@ import { ContabilidadRegistro } from '../contabilidad-formulario/contabilidad-fo
 import { Firestore, collection, getDocs, query, orderBy, deleteDoc, doc, updateDoc } from '@angular/fire/firestore';
 import * as XLSX from 'xlsx';
 import { ConfirmacionModalComponent, ConfirmacionModalData } from '../confirmacion-modal/confirmacion-modal.component';
+import { jsPDF } from 'jspdf';
 
 @Component({
   selector: 'app-contabilidad-tabla',
@@ -29,6 +30,16 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
     mensaje: '¿Estás seguro de que quieres generar el archivo Excel con todos los registros de contabilidad?',
     tipo: 'confirmar',
     textoBotonConfirmar: 'Generar Excel',
+    textoBotonCancelar: 'Cancelar'
+  };
+
+  // Variables para el modal de confirmación de PDF
+  mostrarModalPDF = false;
+  datosModalPDF: ConfirmacionModalData = {
+    titulo: 'Generar Reporte PDF',
+    mensaje: '¿Estás seguro de que quieres generar el reporte PDF con todos los registros de contabilidad?',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Generar PDF',
     textoBotonCancelar: 'Cancelar'
   };
 
@@ -172,7 +183,7 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
   }
 
   getTotalGeneral(): number {
-    return this.registros.reduce((total, registro) => total + registro.total, 0);
+    return this.getTotalIngresos() - this.getTotalGastos();
   }
 
   getTotalIngresos(): number {
@@ -266,6 +277,257 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
     } catch (error) {
       console.error('Error al generar Excel:', error);
       alert('Error al generar el archivo Excel');
+    }
+  }
+
+  // Función para mostrar el modal de confirmación de PDF
+  mostrarConfirmacionPDF() {
+    if (this.registros.length === 0) {
+      alert('No hay registros para generar el reporte PDF');
+      return;
+    }
+
+    // Actualizar el mensaje del modal con información de los registros
+    const totalRegistros = this.registros.length;
+    const totalIngresos = this.getTotalIngresos();
+    const totalGastos = this.getTotalGastos();
+    const balanceGeneral = this.getTotalGeneral();
+
+    this.datosModalPDF.mensaje = `¿Estás seguro de que quieres generar el reporte PDF?\n\n` +
+      `• Total de registros: ${totalRegistros}\n` +
+      `• Total de ingresos: $${totalIngresos.toFixed(2)}\n` +
+      `• Total de gastos: $${totalGastos.toFixed(2)}\n` +
+      `• Balance general: $${balanceGeneral.toFixed(2)}`;
+
+    this.mostrarModalPDF = true;
+  }
+
+  // Función para confirmar la generación de PDF
+  confirmarGenerarPDF() {
+    this.mostrarModalPDF = false;
+    this.generarPDFGeneral();
+  }
+
+  // Función para cancelar la generación de PDF
+  cancelarGenerarPDF() {
+    this.mostrarModalPDF = false;
+  }
+
+  // Función para generar PDF general con todos los registros de contabilidad
+  async generarPDFGeneral() {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 16;
+
+      // Cargar logo como base64
+      const logoUrl = 'public/assets/ui/logo.jpg';
+      let logoBase64 = '';
+      try {
+        const response = await fetch(logoUrl);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string);
+        });
+        reader.readAsDataURL(blob);
+        logoBase64 = await base64Promise;
+      } catch (e) {
+        logoBase64 = '';
+      }
+
+      // Encabezado con logo
+      doc.setFillColor(235, 235, 235);
+      doc.rect(0, 0, pageWidth, 40, 'F');
+      if (logoBase64) {
+        doc.addImage(logoBase64, 'JPEG', margin, 8, 24, 24);
+      } else {
+        doc.setFontSize(10);
+        doc.setTextColor(180, 0, 0);
+        doc.text('logo', margin + 8, 22, {align: 'center'});
+      }
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+      doc.text('GUARDERÍA CANINA', margin + 36, 22);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+      doc.text('Reporte de Contabilidad', margin + 36, 32);
+
+      // Fecha del reporte
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+      const reportDate = `Fecha del reporte: ${new Date().toLocaleDateString()}`;
+      const dateWidth = doc.getTextWidth(reportDate);
+      doc.text(reportDate, pageWidth - margin - dateWidth, 18);
+
+      // Estadísticas generales
+      let y = 48;
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+      doc.text('RESUMEN FINANCIERO:', margin, y);
+      y += 8;
+
+      // Tarjeta de estadísticas
+      const statsWidth = 160;
+      const statsX = (pageWidth - statsWidth) / 2;
+      doc.setFillColor(242, 245, 247);
+      doc.roundedRect(statsX, y, statsWidth, 30, 8, 8, 'F');
+      doc.setDrawColor(220, 220, 220);
+      doc.roundedRect(statsX + 1, y + 1, statsWidth, 30, 8, 8);
+
+      const statsLeftX = statsX + 8;
+      let statsY = y + 12;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+
+      doc.text('Total de registros:', statsLeftX, statsY);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${this.registros.length}`, statsLeftX + 50, statsY);
+
+      doc.setFont('helvetica', 'normal');
+      doc.text('Total ingresos:', statsLeftX + 80, statsY);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 128, 0);
+      doc.text(`$${this.getTotalIngresos().toFixed(2)}`, statsLeftX + 130, statsY);
+
+      statsY += 8;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      doc.text('Total gastos:', statsLeftX, statsY);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(200, 0, 0);
+      doc.text(`$${this.getTotalGastos().toFixed(2)}`, statsLeftX + 50, statsY);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      doc.text('Balance general:', statsLeftX + 80, statsY);
+      doc.setFont('helvetica', 'bold');
+      const balanceGeneral = this.getTotalGeneral();
+      doc.setTextColor(balanceGeneral >= 0 ? 0 : 200, 0, 0);
+      doc.text(`$${balanceGeneral.toFixed(2)}`, statsLeftX + 130, statsY);
+
+      // Tabla de registros
+      y += 50;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+      doc.text('REGISTROS CONTABLES:', margin, y);
+      y += 8;
+
+      // Encabezados de la tabla
+      const tableHeaders = ['Fecha', 'Ingresos', 'Gastos', 'Total', 'Observaciones'];
+      const colWidths = [25, 25, 25, 25, 60];
+      const rowHeight = 10;
+      let tableX = margin;
+      let tableY = y;
+
+      // Fondo del encabezado
+      doc.setFillColor(200, 202, 205);
+      doc.rect(tableX, tableY, colWidths.reduce((a, b) => a + b, 0), rowHeight, 'F');
+
+      // Texto del encabezado
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+      let currentX = tableX;
+      tableHeaders.forEach((header, index) => {
+        doc.text(header, currentX + 2, tableY + 6);
+        currentX += colWidths[index];
+      });
+
+      // Filas de datos
+      tableY += rowHeight;
+      let pageNumber = 1;
+      let registrosPorPagina = 0;
+      const maxRegistrosPorPagina = 15;
+
+      for (let i = 0; i < this.registros.length; i++) {
+        const registro = this.registros[i];
+
+        // Verificar si necesitamos nueva página
+        if (registrosPorPagina >= maxRegistrosPorPagina) {
+          doc.addPage();
+          pageNumber++;
+          tableY = 20;
+          registrosPorPagina = 0;
+
+          // Repetir encabezado en nueva página
+          doc.setFillColor(200, 202, 205);
+          doc.rect(tableX, tableY, colWidths.reduce((a, b) => a + b, 0), rowHeight, 'F');
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(30, 30, 30);
+          currentX = tableX;
+          tableHeaders.forEach((header, index) => {
+            doc.text(header, currentX + 2, tableY + 6);
+            currentX += colWidths[index];
+          });
+          tableY += rowHeight;
+        }
+
+        // Fondo alterno para las filas
+        if (registrosPorPagina % 2 === 0) {
+          doc.setFillColor(245, 250, 252);
+          doc.rect(tableX, tableY, colWidths.reduce((a, b) => a + b, 0), rowHeight, 'F');
+        }
+
+        // Datos de la fila
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+
+        currentX = tableX;
+        doc.setTextColor(60, 60, 60);
+        doc.text(registro.fecha, currentX + 2, tableY + 6);
+        currentX += colWidths[0];
+
+        doc.setTextColor(0, 128, 0);
+        doc.text(`$${(registro.ingreso || 0).toFixed(2)}`, currentX + 2, tableY + 6);
+        currentX += colWidths[1];
+
+        doc.setTextColor(200, 0, 0);
+        doc.text(`$${(registro.gastos || 0).toFixed(2)}`, currentX + 2, tableY + 6);
+        currentX += colWidths[2];
+
+        const total = (registro.total || 0);
+        doc.setTextColor(total >= 0 ? 0 : 200, 0, 0);
+        doc.text(`$${total.toFixed(2)}`, currentX + 2, tableY + 6);
+        currentX += colWidths[3];
+
+        doc.setTextColor(60, 60, 60);
+        const observaciones = registro.observaciones || '';
+        doc.text(observaciones.substring(0, 35), currentX + 2, tableY + 6);
+
+        tableY += rowHeight;
+        registrosPorPagina++;
+      }
+
+      // Bordes de la tabla
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(tableX, y, colWidths.reduce((a, b) => a + b, 0), tableY - y);
+
+      // Pie de página
+      let footerY = pageHeight - 20;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(120, 120, 120);
+      doc.text(`Página ${pageNumber}`, pageWidth - margin - 30, footerY);
+      doc.text(`Reporte generado el ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}`, margin, footerY);
+
+      // Guardar el archivo
+      const fechaActual = new Date().toISOString().split('T')[0];
+      const nombreArchivo = `reporte_contabilidad_${fechaActual}.pdf`;
+      doc.save(nombreArchivo);
+
+      alert('Reporte PDF de contabilidad generado exitosamente');
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      alert('Error al generar el reporte PDF');
     }
   }
 }
