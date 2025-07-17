@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ContabilidadRegistro } from '../contabilidad-formulario/contabilidad-formulario.component';
 import { Firestore, collection, getDocs, query, orderBy, deleteDoc, doc, updateDoc } from '@angular/fire/firestore';
+import * as XLSX from 'xlsx';
+import { ConfirmacionModalComponent, ConfirmacionModalData } from '../confirmacion-modal/confirmacion-modal.component';
 
 @Component({
   selector: 'app-contabilidad-tabla',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmacionModalComponent],
   templateUrl: './contabilidad-tabla.component.html',
   styleUrl: './contabilidad-tabla.component.scss'
 })
@@ -19,6 +21,16 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
   // Variables para el modal de edición
   mostrarModalEdicion = false;
   registroEditando: ContabilidadRegistro | null = null;
+
+  // Variables para el modal de confirmación de Excel
+  mostrarModalExcel = false;
+  datosModalExcel: ConfirmacionModalData = {
+    titulo: 'Generar Archivo Excel',
+    mensaje: '¿Estás seguro de que quieres generar el archivo Excel con todos los registros de contabilidad?',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Generar Excel',
+    textoBotonCancelar: 'Cancelar'
+  };
 
   // Datos del formulario de edición
   fechaEdit: string = '';
@@ -169,5 +181,91 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
 
   getTotalGastos(): number {
     return this.registros.reduce((total, registro) => total + registro.gastos, 0);
+  }
+
+  // Función para mostrar el modal de confirmación de Excel
+  mostrarConfirmacionExcel() {
+    if (this.registros.length === 0) {
+      alert('No hay registros para generar el archivo Excel');
+      return;
+    }
+
+    // Actualizar el mensaje del modal con información de los registros
+    const totalRegistros = this.registros.length;
+    const totalIngresos = this.getTotalIngresos();
+    const totalGastos = this.getTotalGastos();
+    const balanceGeneral = this.getTotalGeneral();
+
+    this.datosModalExcel.mensaje = `¿Estás seguro de que quieres generar el archivo Excel?\n\n` +
+      `• Total de registros: ${totalRegistros}\n` +
+      `• Total de ingresos: $${totalIngresos.toFixed(2)}\n` +
+      `• Total de gastos: $${totalGastos.toFixed(2)}\n` +
+      `• Balance general: $${balanceGeneral.toFixed(2)}`;
+
+    this.mostrarModalExcel = true;
+  }
+
+  // Función para confirmar la generación de Excel
+  confirmarGenerarExcel() {
+    this.mostrarModalExcel = false;
+    this.generarExcel();
+  }
+
+  // Función para cancelar la generación de Excel
+  cancelarGenerarExcel() {
+    this.mostrarModalExcel = false;
+  }
+
+  generarExcel() {
+    try {
+      // Preparar los datos para Excel
+      const datosExcel = this.registros.map(registro => ({
+        'Fecha': registro.fecha,
+        'Ingresos ($)': registro.ingreso,
+        'Gastos ($)': registro.gastos,
+        'Total ($)': registro.total,
+        'Observaciones': registro.observaciones,
+        'Fecha de Creación': registro.fechaCreacion ? registro.fechaCreacion.toLocaleDateString() : ''
+      }));
+
+      // Agregar fila de totales
+      const totales = {
+        'Fecha': 'TOTALES',
+        'Ingresos ($)': this.getTotalIngresos(),
+        'Gastos ($)': this.getTotalGastos(),
+        'Total ($)': this.getTotalGeneral(),
+        'Observaciones': '',
+        'Fecha de Creación': ''
+      };
+      datosExcel.push(totales);
+
+      // Crear el workbook y worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(datosExcel);
+
+      // Ajustar el ancho de las columnas
+      const columnWidths = [
+        { wch: 12 }, // Fecha
+        { wch: 15 }, // Ingresos
+        { wch: 15 }, // Gastos
+        { wch: 15 }, // Total
+        { wch: 40 }, // Observaciones
+        { wch: 20 }  // Fecha de Creación
+      ];
+      worksheet['!cols'] = columnWidths;
+
+      // Agregar el worksheet al workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Contabilidad');
+
+      // Generar el archivo y descargarlo
+      const fechaActual = new Date().toISOString().split('T')[0];
+      const nombreArchivo = `contabilidad_${fechaActual}.xlsx`;
+      XLSX.writeFile(workbook, nombreArchivo);
+
+      alert('Archivo Excel generado exitosamente');
+    } catch (error) {
+      console.error('Error al generar Excel:', error);
+      alert('Error al generar el archivo Excel');
+    }
   }
 }
