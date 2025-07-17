@@ -1,74 +1,7 @@
 <div class="empleados-formulario">
   <h2 class="mb-4">Calendario de Empleados</h2>
 
-  <!-- Formulario para agregar día de trabajo -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h5>Agregar Día de Trabajo</h5>
-    </div>
-    <div class="card-body">
-      <form (ngSubmit)="agregarDia()" class="row g-3">
-        <div class="col-md-3">
-          <label for="fecha" class="form-label">Fecha</label>
-          <input
-            type="date"
-            class="form-control"
-            id="fecha"
-            [(ngModel)]="nuevoDia.fecha"
-            name="fecha"
-            required>
-        </div>
 
-        <div class="col-md-3">
-          <label for="empleado" class="form-label">Empleado</label>
-          <select
-            class="form-select"
-            id="empleado"
-            [(ngModel)]="nuevoDia.empleado"
-            name="empleado"
-            required>
-            <option value="">Seleccionar empleado</option>
-            <option *ngFor="let empleado of empleados" [value]="empleado" [disabled]="isSoloNomina(empleado)">
-              {{ empleado }} {{ isSoloNomina(empleado) ? '(Solo nómina)' : '' }}
-            </option>
-          </select>
-        </div>
-
-        <div class="col-md-3">
-          <label for="turno" class="form-label">Turno</label>
-          <select
-            class="form-select"
-            id="turno"
-            [(ngModel)]="nuevoDia.turno"
-            name="turno"
-            required>
-            <option value="">Seleccionar turno</option>
-            <option *ngFor="let turno of turnos" [value]="turno">
-              {{ turno }}
-            </option>
-          </select>
-        </div>
-
-        <div class="col-md-3">
-          <div class="form-check mt-4">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              id="pago"
-              [(ngModel)]="nuevoDia.pago"
-              name="pago">
-            <label class="form-check-label" for="pago">
-              Pago realizado
-            </label>
-          </div>
-        </div>
-
-        <div class="col-12">
-          <button type="submit" class="btn btn-success">Agregar Día</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
   <!-- Formulario para agregar nómina -->
   <div class="card mb-4">
@@ -78,13 +11,24 @@
     <div class="card-body">
       <form (ngSubmit)="agregarNomina()" class="row g-3">
         <div class="col-md-3">
-          <label for="fechaNomina" class="form-label">Fecha</label>
+          <label for="fechaInicio" class="form-label">Fecha inicio *</label>
           <input
             type="date"
             class="form-control"
-            id="fechaNomina"
-            [(ngModel)]="nuevoRegistroNomina.fecha"
-            name="fechaNomina"
+            id="fechaInicio"
+            [(ngModel)]="nuevoRegistroNomina.fechaInicio"
+            name="fechaInicio"
+            required>
+        </div>
+
+        <div class="col-md-3">
+          <label for="fechaFin" class="form-label">Fecha fin *</label>
+          <input
+            type="date"
+            class="form-control"
+            id="fechaFin"
+            [(ngModel)]="nuevoRegistroNomina.fechaFin"
+            name="fechaFin"
             required>
         </div>
 

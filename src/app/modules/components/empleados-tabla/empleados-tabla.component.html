@@ -1,55 +1,13 @@
 <div class="empleados-tabla">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Registros de Empleados</h3>
-    <div class="btn-group" role="group">
-      <button type="button" class="btn btn-outline-primary" [class.active]="!mostrarTablaNomina" (click)="mostrarTablaNomina = false">
-        Días de Trabajo
-      </button>
-      <button type="button" class="btn btn-outline-warning" [class.active]="mostrarTablaNomina" (click)="mostrarTablaNomina = true">
-        Registros de Nómina
-      </button>
-    </div>
+    <h3>Registros de Nómina</h3>
   </div>
 
-  <!-- Estadísticas de Días de Trabajo -->
-  <div class="row mb-4" *ngIf="!mostrarTablaNomina">
-    <div class="col-md-3">
-      <div class="card text-center">
-        <div class="card-body">
-          <h5 class="card-title">Total Registros</h5>
-          <p class="card-text text-secondary fs-4">{{ getTotalRegistros() }}</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card text-center">
-        <div class="card-body">
-          <h5 class="card-title">Pagos Realizados</h5>
-          <p class="card-text text-success fs-4">{{ getTotalPagos() }}</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card text-center">
-        <div class="card-body">
-          <h5 class="card-title">Pagos Día</h5>
-          <p class="card-text text-warning fs-4">{{ getPagosPorTurno('Día') }}</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card text-center">
-        <div class="card-body">
-          <h5 class="card-title">Pagos Noche</h5>
-          <p class="card-text text-info fs-4">{{ getPagosPorTurno('Noche') }}</p>
-        </div>
-      </div>
-    </div>
-  </div>
+
 
   <!-- Estadísticas de Nómina -->
-  <div class="row mb-4" *ngIf="mostrarTablaNomina">
-    <div class="col-md-3">
+  <div class="row mb-4">
+    <div class="col-md-2">
       <div class="card text-center">
         <div class="card-body">
           <h5 class="card-title">Total Nóminas</h5>
@@ -57,7 +15,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
       <div class="card text-center">
         <div class="card-body">
           <h5 class="card-title">Nóminas Pagadas</h5>
@@ -65,7 +23,7 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
       <div class="card text-center">
         <div class="card-body">
           <h5 class="card-title">Nóminas Pendientes</h5>
@@ -81,30 +39,20 @@
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- Resumen por empleado - Días de Trabajo -->
-  <div class="row mb-4" *ngIf="!mostrarTablaNomina && getEmpleadosUnicos().length > 0">
-    <div class="col-12">
-      <h5>Resumen por Empleado - Días de Trabajo</h5>
-      <div class="row">
-        <div class="col-md-4" *ngFor="let empleado of getEmpleadosUnicos()">
-          <div class="card">
-            <div class="card-body text-center">
-              <h6 class="card-title">{{ empleado }}</h6>
-              <p class="card-text">
-                <span class="text-success">{{ getPagosPorEmpleado(empleado) }}</span> /
-                <span class="text-secondary">{{ getRegistrosPorEmpleado(empleado) }}</span> pagos
-              </p>
-            </div>
-          </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Total Pendiente</h5>
+          <p class="card-text text-danger fs-4">${{ getTotalPagoPendiente() | number:'1.0-0' }}</p>
         </div>
       </div>
     </div>
   </div>
 
+
+
   <!-- Resumen por empleado - Nómina -->
-  <div class="row mb-4" *ngIf="mostrarTablaNomina && getEmpleadosUnicosNomina().length > 0">
+  <div class="row mb-4" *ngIf="getEmpleadosUnicosNomina().length > 0">
     <div class="col-12">
       <h5>Resumen por Empleado - Nómina</h5>
       <div class="row">
@@ -112,9 +60,20 @@
           <div class="card">
             <div class="card-body text-center">
               <h6 class="card-title">{{ empleado }}</h6>
-              <p class="card-text">
+              <p class="card-text mb-2">
                 <span class="text-success">{{ getNominasPagadasPorEmpleado(empleado) }}</span> /
                 <span class="text-secondary">{{ getNominasPorEmpleado(empleado) }}</span> nóminas pagadas
+              </p>
+              <p class="card-text mb-1">
+                <small class="text-muted">
+                  Pendientes: <span class="text-warning">{{ getNominasPendientesPorEmpleado(empleado) }}</span>
+                </small>
+              </p>
+              <p class="card-text">
+                <strong class="text-danger">
+                  ${{ getPagoPendientePorEmpleado(empleado) | number:'1.0-0' }}
+                </strong>
+                <small class="text-muted"> pendiente</small>
               </p>
             </div>
           </div>
@@ -123,52 +82,10 @@
     </div>
   </div>
 
-  <!-- Tabla de Días de Trabajo -->
-  <div class="table-responsive" *ngIf="!mostrarTablaNomina">
-    <table class="table table-striped table-hover">
-      <thead class="table-dark">
-        <tr>
-          <th>Fecha</th>
-          <th>Empleado</th>
-          <th>Turno</th>
-          <th>Pago</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let registro of registros">
-          <td>{{ registro.fecha | date:'dd/MM/yyyy' }}</td>
-          <td>{{ registro.empleado }}</td>
-          <td>
-            <span class="badge" [class.bg-warning]="registro.turno === 'Día'" [class.bg-info]="registro.turno === 'Noche'">
-              {{ registro.turno }}
-            </span>
-          </td>
-          <td>
-            <span class="badge" [class.bg-success]="registro.pago" [class.bg-secondary]="!registro.pago">
-              {{ registro.pago ? 'Pagado' : 'Pendiente' }}
-            </span>
-          </td>
-          <td>
-            <div class="btn-group" role="group">
-              <button type="button" class="btn btn-sm btn-outline-primary" (click)="onEditar(registro)" title="Editar">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button type="button" class="btn btn-sm btn-outline-danger" (click)="onEliminar(registro.id)" title="Eliminar">
-                <i class="bi bi-trash"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="registros.length === 0">
-          <td colspan="5" class="text-center text-muted">No hay registros de empleados</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+
 
   <!-- Tabla de Nómina -->
-  <div class="table-responsive" *ngIf="mostrarTablaNomina">
+  <div class="table-responsive">
     <table class="table table-striped table-hover">
       <thead class="table-dark">
         <tr>
@@ -216,47 +133,7 @@
   </div>
 </div>
 
-<!-- Modal de Edición -->
-<div class="modal fade" [class.show]="mostrarModalEdicion" [style.display]="mostrarModalEdicion ? 'block' : 'none'" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Editar Registro de Empleado</h5>
-        <button type="button" class="btn-close" (click)="cerrarModalEdicion()"></button>
-      </div>
-      <div class="modal-body">
-        <form (ngSubmit)="guardarEdicion()">
-          <div class="mb-3">
-            <label for="fechaEdit" class="form-label">Fecha</label>
-            <input type="date" class="form-control" id="fechaEdit" [(ngModel)]="fechaEdit" name="fechaEdit" required>
-          </div>
-          <div class="mb-3">
-            <label for="empleadoEdit" class="form-label">Empleado</label>
-            <select class="form-select" id="empleadoEdit" [(ngModel)]="empleadoEdit" name="empleadoEdit" required>
-              <option value="">Seleccionar empleado</option>
-              <option *ngFor="let empleado of empleados" [value]="empleado">{{ empleado }}</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="turnoEdit" class="form-label">Turno</label>
-            <select class="form-select" id="turnoEdit" [(ngModel)]="turnoEdit" name="turnoEdit" required>
-              <option value="">Seleccionar turno</option>
-              <option *ngFor="let turno of turnos" [value]="turno">{{ turno }}</option>
-            </select>
-          </div>
-          <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" id="pagoEdit" [(ngModel)]="pagoEdit" name="pagoEdit">
-            <label class="form-check-label" for="pagoEdit">Pago realizado</label>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" (click)="cerrarModalEdicion()">Cancelar</button>
-            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 <!-- Modal de Edición de Nómina -->
 <div class="modal fade" [class.show]="mostrarModalEdicionNomina" [style.display]="mostrarModalEdicionNomina ? 'block' : 'none'" tabindex="-1">

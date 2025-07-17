@@ -17,6 +17,11 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
   @Output() verDetalle = new EventEmitter<RegistroPerro>();
   @Output() editarRegistroEvent = new EventEmitter<RegistroPerro>();
 
+  // Propiedades para los totales
+  totalIngresos: number = 0;
+  totalGastos: number = 0;
+  totalGeneral: number = 0;
+
   private firestore = inject(Firestore);
   private ngZone = inject(NgZone);
 
@@ -51,6 +56,7 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
 
         this.ngZone.run(() => {
           this.registros = registros;
+          this.calcularTotales();
         });
       });
     } catch (error) {
@@ -59,8 +65,16 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // Método para calcular los totales
+  calcularTotales() {
+    this.totalIngresos = this.registros.reduce((sum, registro) => sum + (registro.ingresos || 0), 0);
+    this.totalGastos = this.registros.reduce((sum, registro) => sum + (registro.gastos || 0), 0);
+    this.totalGeneral = this.totalIngresos - this.totalGastos;
+  }
+
   async actualizarTabla() {
     await this.cargarRegistros();
+    this.calcularTotales();
   }
 
   // Variables para el modal de edición

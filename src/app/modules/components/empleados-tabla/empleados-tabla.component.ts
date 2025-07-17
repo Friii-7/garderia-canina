@@ -21,21 +21,10 @@ export interface RegistroNomina {
   styleUrl: './empleados-tabla.component.scss'
 })
 export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
-  @Input() registros: EmpleadoRegistro[] = [];
-  @Output() editarRegistro = new EventEmitter<EmpleadoRegistro>();
-  @Output() eliminarRegistro = new EventEmitter<string>();
-
   // Registros de nómina
   registrosNomina: RegistroNomina[] = [];
-  mostrarTablaNomina = false;
 
-  // Modal de edición
-  mostrarModalEdicion = false;
-  registroEditando: EmpleadoRegistro | null = null;
-  fechaEdit: string = '';
-  empleadoEdit: string = '';
-  turnoEdit: string = '';
-  pagoEdit: boolean = false;
+
 
   // Modal de edición de nómina
   mostrarModalEdicionNomina = false;
@@ -47,7 +36,6 @@ export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
   pagoNominaEdit: boolean = false;
 
   empleados = ['Farzin', 'Saul', 'Evelyn'];
-  turnos = ['Día', 'Noche'];
 
   private firestore = inject(Firestore);
   private ngZone = inject(NgZone);
@@ -64,18 +52,6 @@ export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
   async cargarRegistros() {
     try {
       await this.ngZone.runOutsideAngular(async () => {
-        // Cargar registros de empleados
-        const registrosRef = collection(this.firestore, 'empleados');
-        const q = query(registrosRef, orderBy('fecha', 'desc'));
-        const querySnapshot = await getDocs(q);
-        const registros = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            ...data,
-            id: doc.id
-          } as EmpleadoRegistro;
-        });
-
         // Cargar registros de nómina
         const nominaRef = collection(this.firestore, 'nomina');
         const qNomina = query(nominaRef, orderBy('fecha', 'desc'));
@@ -89,7 +65,6 @@ export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
         });
 
         this.ngZone.run(() => {
-          this.registros = registros;
           this.registrosNomina = registrosNomina;
         });
       });
@@ -103,101 +78,7 @@ export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
     await this.cargarRegistros();
   }
 
-  onEditar(registro: EmpleadoRegistro) {
-    this.registroEditando = registro;
-    this.fechaEdit = registro.fecha;
-    this.empleadoEdit = registro.empleado;
-    this.turnoEdit = registro.turno;
-    this.pagoEdit = registro.pago;
-    this.mostrarModalEdicion = true;
-  }
 
-  async guardarEdicion() {
-    if (!this.fechaEdit || !this.empleadoEdit || !this.turnoEdit || !this.registroEditando) {
-      alert('Por favor complete todos los campos requeridos');
-      return;
-    }
-    if (!this.registroEditando.id) {
-      alert('ID no válido');
-      return;
-    }
-    try {
-      await this.ngZone.runOutsideAngular(async () => {
-        if (this.registroEditando && this.registroEditando.id) {
-          const datosActualizados = {
-            fecha: this.fechaEdit,
-            empleado: this.empleadoEdit,
-            turno: this.turnoEdit,
-            pago: this.pagoEdit
-          };
-          const docRef = doc(this.firestore, 'empleados', this.registroEditando.id);
-          await updateDoc(docRef, datosActualizados);
-        }
-      });
-      await this.cargarRegistros();
-      this.cerrarModalEdicion();
-      alert('Registro actualizado exitosamente');
-    } catch (error) {
-      console.error('Error al actualizar registro:', error);
-      alert('Error al actualizar el registro');
-    }
-  }
-
-  cerrarModalEdicion() {
-    this.mostrarModalEdicion = false;
-    this.registroEditando = null;
-    this.fechaEdit = '';
-    this.empleadoEdit = '';
-    this.turnoEdit = '';
-    this.pagoEdit = false;
-  }
-
-  async onEliminar(id: string | undefined) {
-    if (!id) {
-      alert('ID no válido');
-      return;
-    }
-    if (confirm('¿Estás seguro de que quieres eliminar este registro?')) {
-      try {
-        await this.ngZone.runOutsideAngular(async () => {
-          const docRef = doc(this.firestore, 'empleados', id);
-          await deleteDoc(docRef);
-        });
-        await this.cargarRegistros();
-      } catch (error) {
-        console.error('Error al eliminar registro:', error);
-        alert('Error al eliminar el registro');
-      }
-    }
-  }
-
-  getTotalPagos(): number {
-    return this.registros.filter(registro => registro.pago).length;
-  }
-
-  getPagosPorEmpleado(empleado: string): number {
-    return this.registros
-      .filter(registro => registro.empleado === empleado && registro.pago)
-      .length;
-  }
-
-  getEmpleadosUnicos(): string[] {
-    return [...new Set(this.registros.map(registro => registro.empleado))];
-  }
-
-  getPagosPorTurno(turno: string): number {
-    return this.registros
-      .filter(registro => registro.turno === turno && registro.pago)
-      .length;
-  }
-
-  getTotalRegistros(): number {
-    return this.registros.length;
-  }
-
-  getRegistrosPorEmpleado(empleado: string): number {
-    return this.registros.filter(registro => registro.empleado === empleado).length;
-  }
 
   // Métodos para nómina
   onEditarNomina(registro: RegistroNomina) {
@@ -302,5 +183,24 @@ export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
 
   getEmpleadosUnicosNomina(): string[] {
     return [...new Set(this.registrosNomina.map(registro => registro.empleado))];
+  }
+
+  // Métodos para calcular pagos pendientes
+  getTotalPagoPendiente(): number {
+    return this.registrosNomina
+      .filter(registro => !registro.pagoRealizado && registro.monto)
+      .reduce((total, registro) => total + (registro.monto || 0), 0);
+  }
+
+  getPagoPendientePorEmpleado(empleado: string): number {
+    return this.registrosNomina
+      .filter(registro => registro.empleado === empleado && !registro.pagoRealizado && registro.monto)
+      .reduce((total, registro) => total + (registro.monto || 0), 0);
+  }
+
+  getNominasPendientesPorEmpleado(empleado: string): number {
+    return this.registrosNomina
+      .filter(registro => registro.empleado === empleado && !registro.pagoRealizado)
+      .length;
   }
 }

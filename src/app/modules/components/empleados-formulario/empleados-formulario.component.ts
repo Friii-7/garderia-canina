@@ -19,7 +19,9 @@ export interface DiaTrabajo {
 
 export interface RegistroNomina {
   id?: string;
-  fecha: string;
+  fecha?: string; // Mantener para compatibilidad
+  fechaInicio?: string;
+  fechaFin?: string;
   empleado: string;
   monto?: number;
   observaciones?: string;
@@ -46,7 +48,6 @@ export class EmpleadosFormularioComponent implements OnInit {
   @Output() registroGuardado = new EventEmitter<void>();
 
   empleados = ['Farzin', 'Saul', 'Evelyn'];
-  turnos = ['Día', 'Noche'];
   empleadoSeleccionado: string = '';
 
   // Información específica de cada empleado
@@ -94,17 +95,12 @@ export class EmpleadosFormularioComponent implements OnInit {
     '2025-12-25', // Navidad
   ];
 
-  // Formulario para agregar día
-  nuevoDia: EmpleadoRegistro = {
-    fecha: '',
-    empleado: '',
-    turno: '',
-    pago: false
-  };
+
 
   // Formulario para agregar nómina
   nuevoRegistroNomina: RegistroNomina = {
-    fecha: '',
+    fechaInicio: '',
+    fechaFin: '',
     empleado: '',
     monto: 0,
     observaciones: ''
@@ -317,28 +313,59 @@ export class EmpleadosFormularioComponent implements OnInit {
   }
 
   async agregarNomina() {
-    if (this.nuevoRegistroNomina.fecha && this.nuevoRegistroNomina.empleado) {
+    if (this.nuevoRegistroNomina.fechaInicio && this.nuevoRegistroNomina.fechaFin && this.nuevoRegistroNomina.empleado) {
       try {
-        await this.ngZone.runOutsideAngular(async () => {
-          await addDoc(collection(this.firestore, 'nomina'), this.nuevoRegistroNomina);
-        });
+        // Crear registros para cada fecha en el rango
+        const fechaInicio = new Date(this.nuevoRegistroNomina.fechaInicio);
+        const fechaFin = new Date(this.nuevoRegistroNomina.fechaFin);
+
+        // Validar que la fecha de fin no sea anterior a la de inicio
+        if (fechaFin < fechaInicio) {
+          alert('La fecha de fin no puede ser anterior a la fecha de inicio');
+          return;
+        }
+
+        // Generar todas las fechas en el rango
+        const fechas = [];
+        const fechaActual = new Date(fechaInicio);
+        while (fechaActual <= fechaFin) {
+          fechas.push(new Date(fechaActual));
+          fechaActual.setDate(fechaActual.getDate() + 1);
+        }
+
+        // Crear un registro para cada fecha
+        for (const fecha of fechas) {
+          const registro = {
+            fecha: fecha.toISOString().split('T')[0],
+            empleado: this.nuevoRegistroNomina.empleado,
+            monto: this.nuevoRegistroNomina.monto,
+            observaciones: this.nuevoRegistroNomina.observaciones
+          };
+
+          await this.ngZone.runOutsideAngular(async () => {
+            await addDoc(collection(this.firestore, 'nomina'), registro);
+          });
+        }
 
         // Recargar datos
         await this.cargarDiasTrabajados();
 
         // Limpiar formulario
         this.nuevoRegistroNomina = {
-          fecha: '',
+          fechaInicio: '',
+          fechaFin: '',
           empleado: '',
           monto: 0,
           observaciones: ''
         };
 
         this.registroGuardado.emit();
-        alert('Registro de nómina agregado exitosamente');
+        alert(`Registros de nómina agregados exitosamente para ${fechas.length} días`);
       } catch (error) {
-        alert('Error al agregar el registro de nómina');
+        alert('Error al agregar los registros de nómina');
       }
+    } else {
+      alert('Por favor completa todos los campos requeridos');
     }
   }
 
@@ -353,31 +380,7 @@ export class EmpleadosFormularioComponent implements OnInit {
     }
   }
 
-  async agregarDia() {
-    if (this.nuevoDia.fecha && this.nuevoDia.empleado && this.nuevoDia.turno) {
-      try {
-        await this.ngZone.runOutsideAngular(async () => {
-          await addDoc(collection(this.firestore, 'empleados'), this.nuevoDia);
-        });
 
-        // Recargar datos
-        await this.cargarDiasTrabajados();
-
-        // Limpiar formulario
-        this.nuevoDia = {
-          fecha: '',
-          empleado: '',
-          turno: '',
-          pago: false
-        };
-
-        this.registroGuardado.emit();
-        alert('Día de trabajo agregado exitosamente');
-      } catch (error) {
-        alert('Error al agregar el día de trabajo');
-      }
-    }
-  }
 
   getNombreMes(): string {
     const meses = [

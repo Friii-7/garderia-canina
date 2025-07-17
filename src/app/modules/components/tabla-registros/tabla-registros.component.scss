@@ -85,3 +85,23 @@
     margin: 1rem auto;
   }
 }
+
+// Estilos para la fila de totales
+.table-info {
+  background-color: #d1ecf1 !important;
+  border-top: 3px solid #17a2b8;
+}
+
+.table-info td {
+  border-top: 2px solid #17a2b8;
+  font-size: 1.1rem;
+}
+
+.table-info strong {
+  color: #0c5460;
+}
+
+// Hover effect para la fila de totales
+.table-info:hover {
+  background-color: #bee5eb !important;
+}
