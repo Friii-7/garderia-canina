@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output, NgZone, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Firestore, collection, addDoc, updateDoc, doc } from '@angular/fire/firestore';
+import { ConfirmacionModalComponent, ConfirmacionModalData } from '../confirmacion-modal/confirmacion-modal.component';
 
 export interface ContabilidadRegistro {
   id?: string;
@@ -16,7 +17,7 @@ export interface ContabilidadRegistro {
 @Component({
   selector: 'app-contabilidad-formulario',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmacionModalComponent],
   templateUrl: './contabilidad-formulario.component.html',
   styleUrl: './contabilidad-formulario.component.scss'
 })
@@ -34,41 +35,64 @@ export class ContabilidadFormularioComponent {
     total: 0
   };
 
+  // Modal de confirmación
+  mostrarModal = false;
+  datosModal: ConfirmacionModalData = {
+    titulo: 'Confirmar Registro Contable',
+    mensaje: '¿Estás seguro de que quieres guardar este registro contable?',
+    tipo: 'guardar'
+  };
+
   async onSubmit() {
     if (this.registro.fecha && this.registro.observaciones) {
-      try {
-        this.registro.total = this.registro.ingreso - this.registro.gastos;
-        this.registro.fechaCreacion = new Date();
+      // Calcular total para mostrar en el modal
+      this.calcularTotal();
 
-        let docRef: any;
-        await this.ngZone.runOutsideAngular(async () => {
-          docRef = await addDoc(collection(this.firestore, 'contabilidad'), this.registro);
-        });
+      // Actualizar mensaje del modal
+      this.datosModal.mensaje = `¿Estás seguro de que quieres guardar este registro contable?\n\nFecha: ${this.registro.fecha}\nIngresos: $${this.registro.ingreso}\nGastos: $${this.registro.gastos}\nTotal: $${this.registro.total}`;
 
-        const registroGuardado = {
-          ...this.registro,
-          id: docRef.id
-        };
-
-        this.nuevoRegistro.emit(registroGuardado);
-
-        // Limpiar formulario
-        this.registro = {
-          fecha: '',
-          ingreso: 0,
-          gastos: 0,
-          observaciones: '',
-          total: 0
-        };
-
-        alert('Registro de contabilidad guardado exitosamente');
-      } catch (error) {
-        console.error('Error al guardar registro:', error);
-        alert('Error al guardar el registro');
-      }
+      // Mostrar modal de confirmación
+      this.mostrarModal = true;
     } else {
       alert('Por favor complete todos los campos requeridos');
     }
+  }
+
+  async confirmarGuardado() {
+    try {
+      this.registro.fechaCreacion = new Date();
+
+      let docRef: any;
+      await this.ngZone.runOutsideAngular(async () => {
+        docRef = await addDoc(collection(this.firestore, 'contabilidad'), this.registro);
+      });
+
+      const registroGuardado = {
+        ...this.registro,
+        id: docRef.id
+      };
+
+      this.nuevoRegistro.emit(registroGuardado);
+
+      // Limpiar formulario
+      this.registro = {
+        fecha: '',
+        ingreso: 0,
+        gastos: 0,
+        observaciones: '',
+        total: 0
+      };
+
+      this.mostrarModal = false;
+      alert('Registro de contabilidad guardado exitosamente');
+    } catch (error) {
+      console.error('Error al guardar registro:', error);
+      alert('Error al guardar el registro');
+    }
+  }
+
+  cancelarGuardado() {
+    this.mostrarModal = false;
   }
 
   calcularTotal() {

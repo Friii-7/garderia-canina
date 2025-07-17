@@ -67,3 +67,12 @@
     </div>
   </form>
 </div>
+
+<!-- Modal de confirmación -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModal"
+  [datos]="datosModal"
+  (confirmar)="confirmarGuardado()"
+  (cancelar)="cancelarGuardado()"
+  (cerrar)="cancelarGuardado()">
+</app-confirmacion-modal>

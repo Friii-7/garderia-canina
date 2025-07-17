@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output, NgZone, inject, OnInit } from '@angula
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Firestore, collection, addDoc, query, where, getDocs } from '@angular/fire/firestore';
+import { ConfirmacionModalComponent, ConfirmacionModalData } from '../confirmacion-modal/confirmacion-modal.component';
 
 export interface EmpleadoRegistro {
   id?: string;
@@ -40,7 +41,7 @@ export interface EmpleadoInfo {
 @Component({
   selector: 'app-empleados-formulario',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmacionModalComponent],
   templateUrl: './empleados-formulario.component.html',
   styleUrl: './empleados-formulario.component.scss'
 })
@@ -104,6 +105,14 @@ export class EmpleadosFormularioComponent implements OnInit {
     empleado: '',
     monto: 0,
     observaciones: ''
+  };
+
+  // Modal de confirmación
+  mostrarModal = false;
+  datosModal: ConfirmacionModalData = {
+    titulo: 'Confirmar Nómina',
+    mensaje: '¿Estás seguro de que quieres agregar estos registros de nómina?',
+    tipo: 'guardar'
   };
 
   private firestore = inject(Firestore);
@@ -314,59 +323,87 @@ export class EmpleadosFormularioComponent implements OnInit {
 
   async agregarNomina() {
     if (this.nuevoRegistroNomina.fechaInicio && this.nuevoRegistroNomina.fechaFin && this.nuevoRegistroNomina.empleado) {
-      try {
-        // Crear registros para cada fecha en el rango
-        const fechaInicio = new Date(this.nuevoRegistroNomina.fechaInicio);
-        const fechaFin = new Date(this.nuevoRegistroNomina.fechaFin);
+      // Validar que la fecha de fin no sea anterior a la de inicio
+      const fechaInicio = new Date(this.nuevoRegistroNomina.fechaInicio);
+      const fechaFin = new Date(this.nuevoRegistroNomina.fechaFin);
 
-        // Validar que la fecha de fin no sea anterior a la de inicio
-        if (fechaFin < fechaInicio) {
-          alert('La fecha de fin no puede ser anterior a la fecha de inicio');
-          return;
-        }
-
-        // Generar todas las fechas en el rango
-        const fechas = [];
-        const fechaActual = new Date(fechaInicio);
-        while (fechaActual <= fechaFin) {
-          fechas.push(new Date(fechaActual));
-          fechaActual.setDate(fechaActual.getDate() + 1);
-        }
-
-        // Crear un registro para cada fecha
-        for (const fecha of fechas) {
-          const registro = {
-            fecha: fecha.toISOString().split('T')[0],
-            empleado: this.nuevoRegistroNomina.empleado,
-            monto: this.nuevoRegistroNomina.monto,
-            observaciones: this.nuevoRegistroNomina.observaciones
-          };
-
-          await this.ngZone.runOutsideAngular(async () => {
-            await addDoc(collection(this.firestore, 'nomina'), registro);
-          });
-        }
-
-        // Recargar datos
-        await this.cargarDiasTrabajados();
-
-        // Limpiar formulario
-        this.nuevoRegistroNomina = {
-          fechaInicio: '',
-          fechaFin: '',
-          empleado: '',
-          monto: 0,
-          observaciones: ''
-        };
-
-        this.registroGuardado.emit();
-        alert(`Registros de nómina agregados exitosamente para ${fechas.length} días`);
-      } catch (error) {
-        alert('Error al agregar los registros de nómina');
+      if (fechaFin < fechaInicio) {
+        alert('La fecha de fin no puede ser anterior a la fecha de inicio');
+        return;
       }
+
+      // Calcular número de días para el mensaje
+      const fechas = [];
+      const fechaActual = new Date(fechaInicio);
+      while (fechaActual <= fechaFin) {
+        fechas.push(new Date(fechaActual));
+        fechaActual.setDate(fechaActual.getDate() + 1);
+      }
+
+      // Actualizar mensaje del modal
+      this.datosModal.mensaje = `¿Estás seguro de que quieres agregar registros de nómina para ${fechas.length} días (${this.nuevoRegistroNomina.empleado})?`;
+
+      // Mostrar modal de confirmación
+      this.mostrarModal = true;
     } else {
       alert('Por favor completa todos los campos requeridos');
     }
+  }
+
+  async confirmarAgregarNomina() {
+    try {
+      if (!this.nuevoRegistroNomina.fechaInicio || !this.nuevoRegistroNomina.fechaFin) {
+        alert('Fechas no válidas');
+        return;
+      }
+
+      const fechaInicio = new Date(this.nuevoRegistroNomina.fechaInicio);
+      const fechaFin = new Date(this.nuevoRegistroNomina.fechaFin);
+
+      // Generar todas las fechas en el rango
+      const fechas = [];
+      const fechaActual = new Date(fechaInicio);
+      while (fechaActual <= fechaFin) {
+        fechas.push(new Date(fechaActual));
+        fechaActual.setDate(fechaActual.getDate() + 1);
+      }
+
+      // Crear un registro para cada fecha
+      for (const fecha of fechas) {
+        const registro = {
+          fecha: fecha.toISOString().split('T')[0],
+          empleado: this.nuevoRegistroNomina.empleado,
+          monto: this.nuevoRegistroNomina.monto,
+          observaciones: this.nuevoRegistroNomina.observaciones
+        };
+
+        await this.ngZone.runOutsideAngular(async () => {
+          await addDoc(collection(this.firestore, 'nomina'), registro);
+        });
+      }
+
+      // Recargar datos
+      await this.cargarDiasTrabajados();
+
+      // Limpiar formulario
+      this.nuevoRegistroNomina = {
+        fechaInicio: '',
+        fechaFin: '',
+        empleado: '',
+        monto: 0,
+        observaciones: ''
+      };
+
+      this.registroGuardado.emit();
+      this.mostrarModal = false;
+      alert(`Registros de nómina agregados exitosamente para ${fechas.length} días`);
+    } catch (error) {
+      alert('Error al agregar los registros de nómina');
+    }
+  }
+
+  cancelarAgregarNomina() {
+    this.mostrarModal = false;
   }
 
   cambiarMes(direccion: number) {

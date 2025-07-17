@@ -209,3 +209,12 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de confirmación -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModal"
+  [datos]="datosModal"
+  (confirmar)="confirmarAgregarNomina()"
+  (cancelar)="cancelarAgregarNomina()"
+  (cerrar)="cancelarAgregarNomina()">
+</app-confirmacion-modal>

@@ -1,0 +1,23 @@
+<div class="modal-overlay" *ngIf="mostrar" (click)="onBackdropClick($event)">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title">{{ datos.titulo }}</h3>
+      <button type="button" class="btn-close" (click)="onCerrar()" aria-label="Cerrar">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p class="modal-mensaje">{{ datos.mensaje }}</p>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="onCancelar()">
+        {{ textoBotonCancelar }}
+      </button>
+      <button type="button" class="btn" [class]="claseBotonConfirmar" (click)="onConfirmar()">
+        {{ textoBotonConfirmar }}
+      </button>
+    </div>
+  </div>
+</div>

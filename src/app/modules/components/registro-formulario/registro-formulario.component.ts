@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output, NgZone, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Firestore, addDoc, collection } from '@angular/fire/firestore';
+import { ConfirmacionModalComponent, ConfirmacionModalData } from '../confirmacion-modal/confirmacion-modal.component';
 
 export interface RegistroPerro {
   nombre: string;
@@ -20,7 +21,7 @@ export interface RegistroPerro {
 @Component({
   selector: 'app-registro-formulario',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmacionModalComponent],
   templateUrl: './registro-formulario.component.html',
   styleUrl: './registro-formulario.component.scss'
 })
@@ -62,6 +63,14 @@ export class RegistroFormularioComponent {
     { valor: 'tarjeta', texto: 'Tarjeta de Crédito/Débito' }
   ];
 
+  // Modal de confirmación
+  mostrarModal = false;
+  datosModal: ConfirmacionModalData = {
+    titulo: 'Confirmar Registro',
+    mensaje: '¿Estás seguro de que quieres guardar este registro?',
+    tipo: 'guardar'
+  };
+
   actualizarIngresos() {
     const rateDia = parseFloat(this.tamanoPerro) || 0;
     const dias = this.diasAlojamiento || 0;
@@ -82,6 +91,11 @@ export class RegistroFormularioComponent {
       return;
     }
 
+    // Mostrar modal de confirmación
+    this.mostrarModal = true;
+  }
+
+  async confirmarGuardado() {
     const tamanoTexto = this.opcionesTamano.find(op => op.valor === this.tamanoPerro)?.texto || '';
 
     const registro: RegistroPerro = {
@@ -108,12 +122,17 @@ export class RegistroFormularioComponent {
       // Emitir evento para actualizar la tabla
       this.nuevoRegistro.emit(registro);
       this.resetForm();
+      this.mostrarModal = false;
 
       alert('Registro guardado exitosamente en Firebase');
     } catch (error) {
       console.error('Error al guardar en Firebase:', error);
       alert('Error al guardar el registro. Por favor intente nuevamente.');
     }
+  }
+
+  cancelarGuardado() {
+    this.mostrarModal = false;
   }
 
   resetForm() {
