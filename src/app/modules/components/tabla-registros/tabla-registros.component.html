@@ -1,7 +1,29 @@
 <!-- Tabla de registros -->
 <div class="card shadow-sm">
   <div class="card-body">
-    <h5 class="card-title mb-3">Registros</h5>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="card-title mb-0">Registros</h5>
+      <div class="btn-group" role="group">
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="mostrarConfirmacionPDF()"
+          [disabled]="registros.length === 0"
+          title="Generar reporte PDF con todos los registros">
+          <i class="bi bi-file-earmark-pdf me-2"></i>
+          Generar PDF
+        </button>
+        <button
+          type="button"
+          class="btn btn-danger"
+          (click)="mostrarConfirmacionExcel()"
+          [disabled]="registros.length === 0"
+          title="Generar archivo Excel con todos los registros">
+          <i class="bi bi-file-earmark-excel me-2"></i>
+          Generar Excel
+        </button>
+      </div>
+    </div>
     <div class="table-responsive">
       <table class="table table-striped">
         <thead>
@@ -286,3 +308,21 @@
   *ngIf="mostrarModalEdicion"
   (click)="cerrarModalEdicion()">
 </div>
+
+<!-- Modal de confirmación para Excel -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalExcel"
+  [datos]="datosModalExcel"
+  (confirmar)="confirmarGenerarExcel()"
+  (cancelar)="cancelarGenerarExcel()"
+  (cerrar)="cancelarGenerarExcel()">
+</app-confirmacion-modal>
+
+<!-- Modal de confirmación para PDF -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalPDF"
+  [datos]="datosModalPDF"
+  (confirmar)="confirmarGenerarPDF()"
+  (cancelar)="cancelarGenerarPDF()"
+  (cerrar)="cancelarGenerarPDF()">
+</app-confirmacion-modal>
