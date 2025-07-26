@@ -19,6 +19,19 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
   @Output() verDetalle = new EventEmitter<RegistroPerro>();
   @Output() editarRegistroEvent = new EventEmitter<RegistroPerro>();
 
+  // Campo de búsqueda
+  terminoBusqueda: string = '';
+
+  // Getter para el término de búsqueda que recalcula totales
+  get _terminoBusqueda(): string {
+    return this.terminoBusqueda;
+  }
+
+  set _terminoBusqueda(value: string) {
+    this.terminoBusqueda = value;
+    this.calcularTotales();
+  }
+
   // Propiedades para los totales
   totalIngresos: number = 0;
   totalGastos: number = 0;
@@ -183,8 +196,8 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
 
   // Método para calcular los totales
   calcularTotales() {
-    this.totalIngresos = this.registros.reduce((sum, registro) => sum + (registro.ingresos || 0), 0);
-    this.totalGastos = this.registros.reduce((sum, registro) => sum + (registro.gastos || 0), 0);
+    this.totalIngresos = this.registrosFiltrados.reduce((sum, registro) => sum + (registro.ingresos || 0), 0);
+    this.totalGastos = this.registrosFiltrados.reduce((sum, registro) => sum + (registro.gastos || 0), 0);
     this.totalGeneral = this.totalIngresos - this.totalGastos;
   }
 
@@ -669,15 +682,34 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
 
   // Funciones auxiliares para obtener totales
   getTotalIngresos(): number {
-    return this.registros.reduce((total, registro) => total + (registro.ingresos || 0), 0);
+    return this.registrosFiltrados.reduce((total, registro) => total + (registro.ingresos || 0), 0);
   }
 
   getTotalGastos(): number {
-    return this.registros.reduce((total, registro) => total + (registro.gastos || 0), 0);
+    return this.registrosFiltrados.reduce((total, registro) => total + (registro.gastos || 0), 0);
   }
 
   getTotalGeneral(): number {
     return this.getTotalIngresos() - this.getTotalGastos();
+  }
+
+  // Getter para filtrar registros
+  get registrosFiltrados(): RegistroPerro[] {
+    if (!this.terminoBusqueda.trim()) {
+      return this.registros;
+    }
+    
+    const termino = this.terminoBusqueda.toLowerCase().trim();
+    return this.registros.filter(registro => 
+      registro.nombre.toLowerCase().includes(termino) ||
+      registro.fecha.toLowerCase().includes(termino) ||
+      registro.tamano.toLowerCase().includes(termino) ||
+      registro.metodoPago.toLowerCase().includes(termino) ||
+      (registro.ingresos && registro.ingresos.toString().includes(termino)) ||
+      (registro.gastos && registro.gastos.toString().includes(termino)) ||
+      (registro.total && registro.total.toString().includes(termino)) ||
+      (registro.dias && registro.dias.toString().includes(termino))
+    );
   }
 
   // Función para mostrar el modal de confirmación de PDF

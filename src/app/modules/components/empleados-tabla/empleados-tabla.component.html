@@ -3,6 +3,34 @@
     <h3>Registros de Nómina</h3>
   </div>
 
+  <!-- Campo de búsqueda -->
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <div class="input-group">
+        <span class="input-group-text">
+          <i class="bi bi-search"></i>
+        </span>
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Buscar por empleado, fecha, observaciones o monto..." 
+          [(ngModel)]="terminoBusqueda"
+          name="terminoBusqueda">
+        <button 
+          class="btn btn-outline-secondary" 
+          type="button" 
+          (click)="terminoBusqueda = ''"
+          *ngIf="terminoBusqueda">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    </div>
+    <div class="col-md-6 text-end">
+      <small class="text-muted">
+        {{ registrosFiltrados.length }} de {{ registrosNomina.length }} registros
+      </small>
+    </div>
+  </div>
 
 
   <!-- Estadísticas de Nómina -->
@@ -98,7 +126,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let registro of registrosNomina">
+        <tr *ngFor="let registro of registrosFiltrados">
           <td>{{ registro.fecha | date:'dd/MM/yyyy' }}</td>
           <td>{{ registro.empleado }}</td>
           <td>
@@ -125,8 +153,11 @@
             </div>
           </td>
         </tr>
-        <tr *ngIf="registrosNomina.length === 0">
-          <td colspan="6" class="text-center text-muted">No hay registros de nómina</td>
+        <tr *ngIf="registrosFiltrados.length === 0">
+          <td colspan="6" class="text-center text-muted">
+            <span *ngIf="registrosNomina.length === 0">No hay registros de nómina</span>
+            <span *ngIf="registrosNomina.length > 0">No se encontraron registros que coincidan con la búsqueda</span>
+          </td>
         </tr>
       </tbody>
     </table>

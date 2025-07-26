@@ -24,6 +24,36 @@
         </button>
       </div>
     </div>
+
+    <!-- Campo de búsqueda -->
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <div class="input-group">
+          <span class="input-group-text">
+            <i class="bi bi-search"></i>
+          </span>
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="Buscar por nombre, fecha, tamaño, método de pago, ingresos, gastos, total o días..." 
+            [(ngModel)]="_terminoBusqueda"
+            name="terminoBusqueda">
+          <button 
+            class="btn btn-outline-secondary" 
+            type="button" 
+            (click)="_terminoBusqueda = ''"
+            *ngIf="terminoBusqueda">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+      </div>
+      <div class="col-md-6 text-end">
+        <small class="text-muted">
+          {{ registrosFiltrados.length }} de {{ registros.length }} registros
+        </small>
+      </div>
+    </div>
+
     <div class="table-responsive">
       <table class="table table-striped">
         <thead>
@@ -42,7 +72,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let registro of registros; let i = index">
+          <tr *ngFor="let registro of registrosFiltrados; let i = index">
             <td>{{ registro.nombre }}</td>
             <td>{{ registro.fecha }}</td>
             <td>{{ registro.tamano }}</td>
@@ -77,12 +107,18 @@
             </td>
           </tr>
           <!-- Fila de totales -->
-          <tr class="table-info fw-bold">
+          <tr class="table-info fw-bold" *ngIf="registrosFiltrados.length > 0">
             <td colspan="6"><strong>TOTALES:</strong></td>
             <td><strong>${{ totalIngresos.toLocaleString() }}</strong></td>
             <td><strong>${{ totalGastos.toLocaleString() }}</strong></td>
             <td><strong>${{ totalGeneral.toLocaleString() }}</strong></td>
             <td colspan="2"></td>
+          </tr>
+          <tr *ngIf="registrosFiltrados.length === 0">
+            <td colspan="11" class="text-center text-muted">
+              <span *ngIf="registros.length === 0">No hay registros de perros</span>
+              <span *ngIf="registros.length > 0">No se encontraron registros que coincidan con la búsqueda</span>
+            </td>
           </tr>
         </tbody>
       </table>

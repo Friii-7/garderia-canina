@@ -25,6 +25,9 @@ export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
   // Registros de nómina
   registrosNomina: RegistroNomina[] = [];
 
+  // Campo de búsqueda
+  terminoBusqueda: string = '';
+
   // Modal de edición de nómina
   mostrarModalEdicionNomina = false;
   nominaEditando: RegistroNomina | null = null;
@@ -286,5 +289,20 @@ export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
     return this.registrosNomina
       .filter(registro => registro.empleado === empleado && !registro.pagoRealizado)
       .length;
+  }
+
+  // Getter para filtrar registros
+  get registrosFiltrados(): RegistroNomina[] {
+    if (!this.terminoBusqueda.trim()) {
+      return this.registrosNomina;
+    }
+    
+    const termino = this.terminoBusqueda.toLowerCase().trim();
+    return this.registrosNomina.filter(registro => 
+      registro.empleado.toLowerCase().includes(termino) ||
+      registro.fecha.toLowerCase().includes(termino) ||
+      (registro.observaciones && registro.observaciones.toLowerCase().includes(termino)) ||
+      (registro.monto && registro.monto.toString().includes(termino))
+    );
   }
 }

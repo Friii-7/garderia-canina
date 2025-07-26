@@ -19,6 +19,9 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
   @Output() editarRegistro = new EventEmitter<ContabilidadRegistro>();
   @Output() eliminarRegistro = new EventEmitter<string>();
 
+  // Campo de búsqueda
+  terminoBusqueda: string = '';
+
   // Variables para el modal de edición
   mostrarModalEdicion = false;
   registroEditando: ContabilidadRegistro | null = null;
@@ -314,6 +317,22 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
 
   getTotalGastos(): number {
     return this.registros.reduce((total, registro) => total + registro.gastos, 0);
+  }
+
+  // Getter para filtrar registros
+  get registrosFiltrados(): ContabilidadRegistro[] {
+    if (!this.terminoBusqueda.trim()) {
+      return this.registros;
+    }
+
+    const termino = this.terminoBusqueda.toLowerCase().trim();
+    return this.registros.filter(registro =>
+      registro.fecha.toLowerCase().includes(termino) ||
+      (registro.observaciones && registro.observaciones.toLowerCase().includes(termino)) ||
+      (registro.ingreso && registro.ingreso.toString().includes(termino)) ||
+      (registro.gastos && registro.gastos.toString().includes(termino)) ||
+      (registro.total && registro.total.toString().includes(termino))
+    );
   }
 
   // Función para mostrar el modal de confirmación de Excel
