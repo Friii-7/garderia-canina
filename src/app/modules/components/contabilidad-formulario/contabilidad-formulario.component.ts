@@ -43,6 +43,33 @@ export class ContabilidadFormularioComponent {
     tipo: 'guardar'
   };
 
+  // Modal de error
+  mostrarModalError = false;
+  datosModalError: ConfirmacionModalData = {
+    titulo: 'Error',
+    mensaje: '',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de éxito
+  mostrarModalExito = false;
+  datosModalExito: ConfirmacionModalData = {
+    titulo: 'Éxito',
+    mensaje: '',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de validación
+  mostrarModalValidacion = false;
+  datosModalValidacion: ConfirmacionModalData = {
+    titulo: 'Campos Requeridos',
+    mensaje: 'Por favor complete todos los campos requeridos',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
   async onSubmit() {
     if (this.registro.fecha && this.registro.observaciones) {
       // Calcular total para mostrar en el modal
@@ -54,7 +81,7 @@ export class ContabilidadFormularioComponent {
       // Mostrar modal de confirmación
       this.mostrarModal = true;
     } else {
-      alert('Por favor complete todos los campos requeridos');
+      this.mostrarModalValidacion = true;
     }
   }
 
@@ -84,15 +111,30 @@ export class ContabilidadFormularioComponent {
       };
 
       this.mostrarModal = false;
-      alert('Registro de contabilidad guardado exitosamente');
+      this.datosModalExito.mensaje = 'Registro de contabilidad guardado exitosamente';
+      this.mostrarModalExito = true;
     } catch (error) {
       console.error('Error al guardar registro:', error);
-      alert('Error al guardar el registro');
+      this.mostrarModal = false;
+      this.datosModalError.mensaje = 'Error al guardar el registro';
+      this.mostrarModalError = true;
     }
   }
 
   cancelarGuardado() {
     this.mostrarModal = false;
+  }
+
+  cerrarModalValidacion() {
+    this.mostrarModalValidacion = false;
+  }
+
+  cerrarModalError() {
+    this.mostrarModalError = false;
+  }
+
+  cerrarModalExito() {
+    this.mostrarModalExito = false;
   }
 
   calcularTotal() {

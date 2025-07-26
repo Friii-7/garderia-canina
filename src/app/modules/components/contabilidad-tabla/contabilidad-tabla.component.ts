@@ -43,6 +43,109 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
     textoBotonCancelar: 'Cancelar'
   };
 
+  // Modal de validación
+  mostrarModalValidacion = false;
+  datosModalValidacion: ConfirmacionModalData = {
+    titulo: 'Campos Requeridos',
+    mensaje: 'Por favor complete todos los campos requeridos',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error de ID
+  mostrarModalErrorId = false;
+  datosModalErrorId: ConfirmacionModalData = {
+    titulo: 'ID Inválido',
+    mensaje: 'ID no válido',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de éxito
+  mostrarModalExito = false;
+  datosModalExito: ConfirmacionModalData = {
+    titulo: 'Éxito',
+    mensaje: '',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error
+  mostrarModalError = false;
+  datosModalError: ConfirmacionModalData = {
+    titulo: 'Error',
+    mensaje: '',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error de carga
+  mostrarModalErrorCarga = false;
+  datosModalErrorCarga: ConfirmacionModalData = {
+    titulo: 'Error de Carga',
+    mensaje: 'Error al cargar los registros desde Firebase',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de confirmación de eliminación
+  mostrarModalEliminacion = false;
+  registroAEliminar: string | undefined;
+
+  // Modal de error sin registros Excel
+  mostrarModalErrorSinRegistrosExcel = false;
+  datosModalErrorSinRegistrosExcel: ConfirmacionModalData = {
+    titulo: 'Sin Registros',
+    mensaje: 'No hay registros para generar el archivo Excel',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de éxito Excel
+  mostrarModalExitoExcel = false;
+  datosModalExitoExcel: ConfirmacionModalData = {
+    titulo: 'Éxito',
+    mensaje: 'Archivo Excel generado exitosamente',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error Excel
+  mostrarModalErrorExcel = false;
+  datosModalErrorExcel: ConfirmacionModalData = {
+    titulo: 'Error',
+    mensaje: 'Error al generar el archivo Excel',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error sin registros PDF
+  mostrarModalErrorSinRegistrosPDF = false;
+  datosModalErrorSinRegistrosPDF: ConfirmacionModalData = {
+    titulo: 'Sin Registros',
+    mensaje: 'No hay registros para generar el reporte PDF',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de éxito PDF
+  mostrarModalExitoPDF = false;
+  datosModalExitoPDF: ConfirmacionModalData = {
+    titulo: 'Éxito',
+    mensaje: 'Reporte PDF de contabilidad generado exitosamente',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error PDF
+  mostrarModalErrorPDF = false;
+  datosModalErrorPDF: ConfirmacionModalData = {
+    titulo: 'Error',
+    mensaje: 'Error al generar el reporte PDF',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
   // Datos del formulario de edición
   fechaEdit: string = '';
   ingresoEdit: number = 0;
@@ -87,7 +190,7 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
       });
     } catch (error) {
       console.error('Error al cargar registros:', error);
-      alert('Error al cargar los registros desde Firebase');
+      this.mostrarModalErrorCarga = true;
     }
   }
 
@@ -114,12 +217,12 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
 
   async guardarEdicion() {
     if (!this.fechaEdit || !this.observacionesEdit || !this.registroEditando) {
-      alert('Por favor complete todos los campos requeridos');
+      this.mostrarModalValidacion = true;
       return;
     }
 
     if (!this.registroEditando.id) {
-      alert('ID no válido');
+      this.mostrarModalErrorId = true;
       return;
     }
 
@@ -141,10 +244,12 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
 
       await this.cargarRegistros();
       this.cerrarModalEdicion();
-      alert('Registro actualizado exitosamente');
+      this.datosModalExito.mensaje = 'Registro actualizado exitosamente';
+      this.mostrarModalExito = true;
     } catch (error) {
       console.error('Error al actualizar registro:', error);
-      alert('Error al actualizar el registro');
+      this.datosModalError.mensaje = 'Error al actualizar el registro';
+      this.mostrarModalError = true;
     }
   }
 
@@ -164,22 +269,39 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
 
   async onEliminar(id: string | undefined) {
     if (!id) {
-      alert('ID no válido');
+      this.mostrarModalErrorId = true;
       return;
     }
-    if (confirm('¿Estás seguro de que quieres eliminar este registro?')) {
-      try {
-        await this.ngZone.runOutsideAngular(async () => {
-          const docRef = doc(this.firestore, 'contabilidad', id);
-          await deleteDoc(docRef);
-        });
-        await this.cargarRegistros();
-        alert('Registro eliminado exitosamente');
-      } catch (error) {
-        console.error('Error al eliminar registro:', error);
-        alert('Error al eliminar el registro');
-      }
+    this.registroAEliminar = id;
+    this.mostrarModalEliminacion = true;
+  }
+
+  async confirmarEliminacion() {
+    if (!this.registroAEliminar) {
+      this.mostrarModalEliminacion = false;
+      return;
     }
+    try {
+      await this.ngZone.runOutsideAngular(async () => {
+        const docRef = doc(this.firestore, 'contabilidad', this.registroAEliminar!);
+        await deleteDoc(docRef);
+      });
+      await this.cargarRegistros();
+      this.mostrarModalEliminacion = false;
+      this.registroAEliminar = undefined;
+      this.datosModalExito.mensaje = 'Registro eliminado exitosamente';
+      this.mostrarModalExito = true;
+    } catch (error) {
+      console.error('Error al eliminar registro:', error);
+      this.mostrarModalEliminacion = false;
+      this.datosModalError.mensaje = 'Error al eliminar el registro';
+      this.mostrarModalError = true;
+    }
+  }
+
+  cancelarEliminacion() {
+    this.mostrarModalEliminacion = false;
+    this.registroAEliminar = undefined;
   }
 
   getTotalGeneral(): number {
@@ -197,7 +319,7 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
   // Función para mostrar el modal de confirmación de Excel
   mostrarConfirmacionExcel() {
     if (this.registros.length === 0) {
-      alert('No hay registros para generar el archivo Excel');
+      this.mostrarModalErrorSinRegistrosExcel = true;
       return;
     }
 
@@ -273,17 +395,17 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
       const nombreArchivo = `contabilidad_${fechaActual}.xlsx`;
       XLSX.writeFile(workbook, nombreArchivo);
 
-      alert('Archivo Excel generado exitosamente');
+      this.mostrarModalExitoExcel = true;
     } catch (error) {
       console.error('Error al generar Excel:', error);
-      alert('Error al generar el archivo Excel');
+      this.mostrarModalErrorExcel = true;
     }
   }
 
   // Función para mostrar el modal de confirmación de PDF
   mostrarConfirmacionPDF() {
     if (this.registros.length === 0) {
-      alert('No hay registros para generar el reporte PDF');
+      this.mostrarModalErrorSinRegistrosPDF = true;
       return;
     }
 
@@ -524,10 +646,55 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
       const nombreArchivo = `reporte_contabilidad_${fechaActual}.pdf`;
       doc.save(nombreArchivo);
 
-      alert('Reporte PDF de contabilidad generado exitosamente');
+      this.mostrarModalExitoPDF = true;
     } catch (error) {
       console.error('Error al generar PDF:', error);
-      alert('Error al generar el reporte PDF');
+      this.mostrarModalErrorPDF = true;
     }
+  }
+
+  // Métodos para cerrar modales
+  cerrarModalValidacion() {
+    this.mostrarModalValidacion = false;
+  }
+
+  cerrarModalErrorId() {
+    this.mostrarModalErrorId = false;
+  }
+
+  cerrarModalExito() {
+    this.mostrarModalExito = false;
+  }
+
+  cerrarModalError() {
+    this.mostrarModalError = false;
+  }
+
+  cerrarModalErrorCarga() {
+    this.mostrarModalErrorCarga = false;
+  }
+
+  cerrarModalErrorSinRegistrosExcel() {
+    this.mostrarModalErrorSinRegistrosExcel = false;
+  }
+
+  cerrarModalExitoExcel() {
+    this.mostrarModalExitoExcel = false;
+  }
+
+  cerrarModalErrorExcel() {
+    this.mostrarModalErrorExcel = false;
+  }
+
+  cerrarModalErrorSinRegistrosPDF() {
+    this.mostrarModalErrorSinRegistrosPDF = false;
+  }
+
+  cerrarModalExitoPDF() {
+    this.mostrarModalExitoPDF = false;
+  }
+
+  cerrarModalErrorPDF() {
+    this.mostrarModalErrorPDF = false;
   }
 }

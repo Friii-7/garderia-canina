@@ -116,6 +116,51 @@ export class EmpleadosFormularioComponent implements OnInit {
     tipo: 'guardar'
   };
 
+  // Modal de validación
+  mostrarModalValidacion = false;
+  datosModalValidacion: ConfirmacionModalData = {
+    titulo: 'Campos Requeridos',
+    mensaje: 'Por favor completa todos los campos requeridos',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error de fechas
+  mostrarModalErrorFechas = false;
+  datosModalErrorFechas: ConfirmacionModalData = {
+    titulo: 'Error de Fechas',
+    mensaje: 'La fecha de fin no puede ser anterior a la fecha de inicio',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error de fechas inválidas
+  mostrarModalErrorFechasInvalidas = false;
+  datosModalErrorFechasInvalidas: ConfirmacionModalData = {
+    titulo: 'Fechas Inválidas',
+    mensaje: 'Fechas no válidas',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de éxito
+  mostrarModalExito = false;
+  datosModalExito: ConfirmacionModalData = {
+    titulo: 'Éxito',
+    mensaje: '',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error
+  mostrarModalError = false;
+  datosModalError: ConfirmacionModalData = {
+    titulo: 'Error',
+    mensaje: 'Error al agregar los registros de nómina',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
   private firestore = inject(Firestore);
   private ngZone = inject(NgZone);
 
@@ -335,7 +380,7 @@ export class EmpleadosFormularioComponent implements OnInit {
       const fechaFin = new Date(this.nuevoRegistroNomina.fechaFin);
 
       if (fechaFin < fechaInicio) {
-        alert('La fecha de fin no puede ser anterior a la fecha de inicio');
+        this.mostrarModalErrorFechas = true;
         return;
       }
 
@@ -353,14 +398,15 @@ export class EmpleadosFormularioComponent implements OnInit {
       // Mostrar modal de confirmación
       this.mostrarModal = true;
     } else {
-      alert('Por favor completa todos los campos requeridos');
+      this.mostrarModalValidacion = true;
     }
   }
 
   async confirmarAgregarNomina() {
     try {
       if (!this.nuevoRegistroNomina.fechaInicio || !this.nuevoRegistroNomina.fechaFin) {
-        alert('Fechas no válidas');
+        this.mostrarModal = false;
+        this.mostrarModalErrorFechasInvalidas = true;
         return;
       }
 
@@ -405,14 +451,36 @@ export class EmpleadosFormularioComponent implements OnInit {
 
       this.registroGuardado.emit();
       this.mostrarModal = false;
-      alert(`Registros de nómina agregados exitosamente para ${fechas.length} días`);
+      this.datosModalExito.mensaje = `Registros de nómina agregados exitosamente para ${fechas.length} días`;
+      this.mostrarModalExito = true;
     } catch (error) {
-      alert('Error al agregar los registros de nómina');
+      this.mostrarModal = false;
+      this.mostrarModalError = true;
     }
   }
 
   cancelarAgregarNomina() {
     this.mostrarModal = false;
+  }
+
+  cerrarModalValidacion() {
+    this.mostrarModalValidacion = false;
+  }
+
+  cerrarModalErrorFechas() {
+    this.mostrarModalErrorFechas = false;
+  }
+
+  cerrarModalErrorFechasInvalidas() {
+    this.mostrarModalErrorFechasInvalidas = false;
+  }
+
+  cerrarModalExito() {
+    this.mostrarModalExito = false;
+  }
+
+  cerrarModalError() {
+    this.mostrarModalError = false;
   }
 
   cambiarMes(direccion: number) {

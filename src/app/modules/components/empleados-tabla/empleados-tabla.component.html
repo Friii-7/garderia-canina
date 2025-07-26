@@ -177,3 +177,63 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de confirmación de eliminación -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalEliminacion"
+  [datos]="{
+    titulo: 'Confirmar Eliminación',
+    mensaje: '¿Estás seguro de que quieres eliminar este registro de nómina?',
+    tipo: 'eliminar',
+    textoBotonConfirmar: 'Eliminar',
+    textoBotonCancelar: 'Cancelar'
+  }"
+  (confirmar)="confirmarEliminacion()"
+  (cancelar)="cancelarEliminacion()"
+  (cerrar)="cancelarEliminacion()">
+</app-confirmacion-modal>
+
+<!-- Modal de validación -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalValidacion"
+  [datos]="datosModalValidacion"
+  (confirmar)="cerrarModalValidacion()"
+  (cancelar)="cerrarModalValidacion()"
+  (cerrar)="cerrarModalValidacion()">
+</app-confirmacion-modal>
+
+<!-- Modal de error de ID -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalErrorId"
+  [datos]="datosModalErrorId"
+  (confirmar)="cerrarModalErrorId()"
+  (cancelar)="cerrarModalErrorId()"
+  (cerrar)="cerrarModalErrorId()">
+</app-confirmacion-modal>
+
+<!-- Modal de éxito -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalExito"
+  [datos]="datosModalExito"
+  (confirmar)="cerrarModalExito()"
+  (cancelar)="cerrarModalExito()"
+  (cerrar)="cerrarModalExito()">
+</app-confirmacion-modal>
+
+<!-- Modal de error -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalError"
+  [datos]="datosModalError"
+  (confirmar)="cerrarModalError()"
+  (cancelar)="cerrarModalError()"
+  (cerrar)="cerrarModalError()">
+</app-confirmacion-modal>
+
+<!-- Modal de error de carga -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalErrorCarga"
+  [datos]="datosModalErrorCarga"
+  (confirmar)="cerrarModalErrorCarga()"
+  (cancelar)="cerrarModalErrorCarga()"
+  (cerrar)="cerrarModalErrorCarga()">
+</app-confirmacion-modal>

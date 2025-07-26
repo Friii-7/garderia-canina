@@ -326,3 +326,108 @@
   (cancelar)="cancelarGenerarPDF()"
   (cerrar)="cancelarGenerarPDF()">
 </app-confirmacion-modal>
+
+<!-- Modal de confirmación de eliminación -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalEliminacion"
+  [datos]="{
+    titulo: 'Confirmar Eliminación',
+    mensaje: '¿Está seguro que desea eliminar el registro de {{ registroAEliminar?.nombre }}?',
+    tipo: 'eliminar',
+    textoBotonConfirmar: 'Eliminar',
+    textoBotonCancelar: 'Cancelar'
+  }"
+  (confirmar)="confirmarEliminacion()"
+  (cancelar)="cancelarEliminacion()"
+  (cerrar)="cancelarEliminacion()">
+</app-confirmacion-modal>
+
+<!-- Modal de validación -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalValidacion"
+  [datos]="datosModalValidacion"
+  (confirmar)="cerrarModalValidacion()"
+  (cancelar)="cerrarModalValidacion()"
+  (cerrar)="cerrarModalValidacion()">
+</app-confirmacion-modal>
+
+<!-- Modal de éxito -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalExito"
+  [datos]="datosModalExito"
+  (confirmar)="cerrarModalExito()"
+  (cancelar)="cerrarModalExito()"
+  (cerrar)="cerrarModalExito()">
+</app-confirmacion-modal>
+
+<!-- Modal de error -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalError"
+  [datos]="datosModalError"
+  (confirmar)="cerrarModalError()"
+  (cancelar)="cerrarModalError()"
+  (cerrar)="cerrarModalError()">
+</app-confirmacion-modal>
+
+<!-- Modal de error de carga -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalErrorCarga"
+  [datos]="datosModalErrorCarga"
+  (confirmar)="cerrarModalErrorCarga()"
+  (cancelar)="cerrarModalErrorCarga()"
+  (cerrar)="cerrarModalErrorCarga()">
+</app-confirmacion-modal>
+
+<!-- Modal de error sin registros Excel -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalErrorSinRegistrosExcel"
+  [datos]="datosModalErrorSinRegistrosExcel"
+  (confirmar)="cerrarModalErrorSinRegistrosExcel()"
+  (cancelar)="cerrarModalErrorSinRegistrosExcel()"
+  (cerrar)="cerrarModalErrorSinRegistrosExcel()">
+</app-confirmacion-modal>
+
+<!-- Modal de éxito Excel -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalExitoExcel"
+  [datos]="datosModalExitoExcel"
+  (confirmar)="cerrarModalExitoExcel()"
+  (cancelar)="cerrarModalExitoExcel()"
+  (cerrar)="cerrarModalExitoExcel()">
+</app-confirmacion-modal>
+
+<!-- Modal de error Excel -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalErrorExcel"
+  [datos]="datosModalErrorExcel"
+  (confirmar)="cerrarModalErrorExcel()"
+  (cancelar)="cerrarModalErrorExcel()"
+  (cerrar)="cerrarModalErrorExcel()">
+</app-confirmacion-modal>
+
+<!-- Modal de error sin registros PDF -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalErrorSinRegistrosPDF"
+  [datos]="datosModalErrorSinRegistrosPDF"
+  (confirmar)="cerrarModalErrorSinRegistrosPDF()"
+  (cancelar)="cerrarModalErrorSinRegistrosPDF()"
+  (cerrar)="cerrarModalErrorSinRegistrosPDF()">
+</app-confirmacion-modal>
+
+<!-- Modal de éxito PDF -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalExitoPDF"
+  [datos]="datosModalExitoPDF"
+  (confirmar)="cerrarModalExitoPDF()"
+  (cancelar)="cerrarModalExitoPDF()"
+  (cerrar)="cerrarModalExitoPDF()">
+</app-confirmacion-modal>
+
+<!-- Modal de error PDF -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalErrorPDF"
+  [datos]="datosModalErrorPDF"
+  (confirmar)="cerrarModalErrorPDF()"
+  (cancelar)="cerrarModalErrorPDF()"
+  (cerrar)="cerrarModalErrorPDF()">
+</app-confirmacion-modal>

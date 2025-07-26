@@ -71,6 +71,33 @@ export class RegistroFormularioComponent {
     tipo: 'guardar'
   };
 
+  // Modal de validación
+  mostrarModalValidacion = false;
+  datosModalValidacion: ConfirmacionModalData = {
+    titulo: 'Campos Requeridos',
+    mensaje: 'Por favor complete todos los campos requeridos',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de éxito
+  mostrarModalExito = false;
+  datosModalExito: ConfirmacionModalData = {
+    titulo: 'Éxito',
+    mensaje: '',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error
+  mostrarModalError = false;
+  datosModalError: ConfirmacionModalData = {
+    titulo: 'Error',
+    mensaje: '',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
   actualizarIngresos() {
     // Verificar si el nombre es "chepe" o "ramon" (sin importar mayúsculas/minúsculas)
     const nombreLower = this.nombreMascota.toLowerCase().trim();
@@ -95,7 +122,7 @@ export class RegistroFormularioComponent {
 
   async onSubmit() {
     if (!this.nombreMascota || !this.fechaIngreso || !this.tamanoPerro || !this.metodoPago) {
-      alert('Por favor complete todos los campos requeridos');
+      this.mostrarModalValidacion = true;
       return;
     }
 
@@ -132,15 +159,30 @@ export class RegistroFormularioComponent {
       this.resetForm();
       this.mostrarModal = false;
 
-      alert('Registro guardado exitosamente en Firebase');
+      this.datosModalExito.mensaje = 'Registro guardado exitosamente en Firebase';
+      this.mostrarModalExito = true;
     } catch (error) {
       console.error('Error al guardar en Firebase:', error);
-      alert('Error al guardar el registro. Por favor intente nuevamente.');
+      this.mostrarModal = false;
+      this.datosModalError.mensaje = 'Error al guardar el registro. Por favor intente nuevamente.';
+      this.mostrarModalError = true;
     }
   }
 
   cancelarGuardado() {
     this.mostrarModal = false;
+  }
+
+  cerrarModalValidacion() {
+    this.mostrarModalValidacion = false;
+  }
+
+  cerrarModalExito() {
+    this.mostrarModalExito = false;
+  }
+
+  cerrarModalError() {
+    this.mostrarModalError = false;
   }
 
   resetForm() {

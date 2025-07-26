@@ -156,3 +156,30 @@
   (cancelar)="cancelarGuardado()"
   (cerrar)="cancelarGuardado()">
 </app-confirmacion-modal>
+
+<!-- Modal de validación -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalValidacion"
+  [datos]="datosModalValidacion"
+  (confirmar)="cerrarModalValidacion()"
+  (cancelar)="cerrarModalValidacion()"
+  (cerrar)="cerrarModalValidacion()">
+</app-confirmacion-modal>
+
+<!-- Modal de éxito -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalExito"
+  [datos]="datosModalExito"
+  (confirmar)="cerrarModalExito()"
+  (cancelar)="cerrarModalExito()"
+  (cerrar)="cerrarModalExito()">
+</app-confirmacion-modal>
+
+<!-- Modal de error -->
+<app-confirmacion-modal
+  [mostrar]="mostrarModalError"
+  [datos]="datosModalError"
+  (confirmar)="cerrarModalError()"
+  (cancelar)="cerrarModalError()"
+  (cerrar)="cerrarModalError()">
+</app-confirmacion-modal>

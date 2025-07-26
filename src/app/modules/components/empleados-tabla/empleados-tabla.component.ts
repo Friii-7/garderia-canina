@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EmpleadoRegistro } from '../empleados-formulario/empleados-formulario.component';
 import { Firestore, collection, getDocs, query, orderBy, deleteDoc, doc, updateDoc } from '@angular/fire/firestore';
+import { ConfirmacionModalComponent, ConfirmacionModalData } from '../confirmacion-modal/confirmacion-modal.component';
 
 export interface RegistroNomina {
   id?: string;
@@ -16,15 +17,13 @@ export interface RegistroNomina {
 @Component({
   selector: 'app-empleados-tabla',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmacionModalComponent],
   templateUrl: './empleados-tabla.component.html',
   styleUrl: './empleados-tabla.component.scss'
 })
 export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
   // Registros de nómina
   registrosNomina: RegistroNomina[] = [];
-
-
 
   // Modal de edición de nómina
   mostrarModalEdicionNomina = false;
@@ -34,6 +33,55 @@ export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
   montoNominaEdit: number = 0;
   observacionesNominaEdit: string = '';
   pagoNominaEdit: boolean = false;
+
+  // Modal de confirmación de eliminación
+  mostrarModalEliminacion = false;
+  nominaAEliminar: string | undefined;
+
+  // Modal de validación
+  mostrarModalValidacion = false;
+  datosModalValidacion: ConfirmacionModalData = {
+    titulo: 'Campos Requeridos',
+    mensaje: 'Por favor complete todos los campos requeridos',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error de ID
+  mostrarModalErrorId = false;
+  datosModalErrorId: ConfirmacionModalData = {
+    titulo: 'ID Inválido',
+    mensaje: 'ID no válido',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de éxito
+  mostrarModalExito = false;
+  datosModalExito: ConfirmacionModalData = {
+    titulo: 'Éxito',
+    mensaje: '',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error
+  mostrarModalError = false;
+  datosModalError: ConfirmacionModalData = {
+    titulo: 'Error',
+    mensaje: '',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error de carga
+  mostrarModalErrorCarga = false;
+  datosModalErrorCarga: ConfirmacionModalData = {
+    titulo: 'Error de Carga',
+    mensaje: 'Error al cargar los registros desde Firebase',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
 
   empleados = ['Farzin', 'Saul', 'Evelyn'];
 
@@ -70,15 +118,13 @@ export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
       });
     } catch (error) {
       console.error('Error al cargar registros:', error);
-      alert('Error al cargar los registros desde Firebase');
+      this.mostrarModalErrorCarga = true;
     }
   }
 
   async actualizarTabla() {
     await this.cargarRegistros();
   }
-
-
 
   // Métodos para nómina
   onEditarNomina(registro: RegistroNomina) {
@@ -93,11 +139,11 @@ export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
 
   async guardarEdicionNomina() {
     if (!this.fechaNominaEdit || !this.empleadoNominaEdit || !this.nominaEditando) {
-      alert('Por favor complete todos los campos requeridos');
+      this.mostrarModalValidacion = true;
       return;
     }
     if (!this.nominaEditando.id) {
-      alert('ID no válido');
+      this.mostrarModalErrorId = true;
       return;
     }
     try {
@@ -116,10 +162,12 @@ export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
       });
       await this.cargarRegistros();
       this.cerrarModalEdicionNomina();
-      alert('Registro de nómina actualizado exitosamente');
+      this.datosModalExito.mensaje = 'Registro de nómina actualizado exitosamente';
+      this.mostrarModalExito = true;
     } catch (error) {
       console.error('Error al actualizar registro de nómina:', error);
-      alert('Error al actualizar el registro de nómina');
+      this.datosModalError.mensaje = 'Error al actualizar el registro de nómina';
+      this.mostrarModalError = true;
     }
   }
 
@@ -135,21 +183,57 @@ export class EmpleadosTablaComponent implements OnInit, AfterViewInit {
 
   async onEliminarNomina(id: string | undefined) {
     if (!id) {
-      alert('ID no válido');
+      this.mostrarModalErrorId = true;
       return;
     }
-    if (confirm('¿Estás seguro de que quieres eliminar este registro de nómina?')) {
-      try {
-        await this.ngZone.runOutsideAngular(async () => {
-          const docRef = doc(this.firestore, 'nomina', id);
-          await deleteDoc(docRef);
-        });
-        await this.cargarRegistros();
-      } catch (error) {
-        console.error('Error al eliminar registro de nómina:', error);
-        alert('Error al eliminar el registro de nómina');
-      }
+    this.nominaAEliminar = id;
+    this.mostrarModalEliminacion = true;
+  }
+
+  async confirmarEliminacion() {
+    if (!this.nominaAEliminar) {
+      this.mostrarModalEliminacion = false;
+      return;
     }
+    try {
+      await this.ngZone.runOutsideAngular(async () => {
+        const docRef = doc(this.firestore, 'nomina', this.nominaAEliminar!);
+        await deleteDoc(docRef);
+      });
+      await this.cargarRegistros();
+      this.mostrarModalEliminacion = false;
+      this.nominaAEliminar = undefined;
+    } catch (error) {
+      console.error('Error al eliminar registro de nómina:', error);
+      this.mostrarModalEliminacion = false;
+      this.datosModalError.mensaje = 'Error al eliminar el registro de nómina';
+      this.mostrarModalError = true;
+    }
+  }
+
+  cancelarEliminacion() {
+    this.mostrarModalEliminacion = false;
+    this.nominaAEliminar = undefined;
+  }
+
+  cerrarModalValidacion() {
+    this.mostrarModalValidacion = false;
+  }
+
+  cerrarModalErrorId() {
+    this.mostrarModalErrorId = false;
+  }
+
+  cerrarModalExito() {
+    this.mostrarModalExito = false;
+  }
+
+  cerrarModalError() {
+    this.mostrarModalError = false;
+  }
+
+  cerrarModalErrorCarga() {
+    this.mostrarModalErrorCarga = false;
   }
 
   // Métodos de estadísticas para nómina
