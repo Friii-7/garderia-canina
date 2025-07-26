@@ -123,8 +123,8 @@
                 <div class="numero-dia" *ngIf="fecha">{{ fecha.getDate() }}</div>
                                 <div class="info-dia" *ngIf="fecha">
                   <!-- Para empleados que solo registran nómina (Saul) -->
-                  <small class="nomina-recibida" *ngIf="isSoloNomina(empleado) && isNominaRecibida(fecha, empleado)">✓</small>
-                  <small class="nomina-pendiente" *ngIf="isSoloNomina(empleado) && isFechaNomina(fecha, empleado) && !isNominaRecibida(fecha, empleado)">$</small>
+                  <small class="nomina-recibida" *ngIf="isSoloNomina(empleado) && isNominaPagada(fecha, empleado)">✓</small>
+                  <small class="nomina-pendiente" *ngIf="isSoloNomina(empleado) && isFechaNomina(fecha, empleado) && !isNominaPagada(fecha, empleado)">$</small>
 
                   <!-- Para empleados que trabajan (Farzin y Evelyn) -->
                   <small class="turno" *ngIf="!isSoloNomina(empleado) && isDiaTrabajado(fecha, empleado)">
@@ -133,8 +133,11 @@
                   <small class="pago" *ngIf="!isSoloNomina(empleado) && isDiaTrabajado(fecha, empleado)?.pago">✓</small>
                   <small class="nomina" *ngIf="!isSoloNomina(empleado) && isFechaNomina(fecha, empleado)">$</small>
 
-                  <!-- Nómina recibida para todos los empleados -->
-                  <small class="nomina-recibida" *ngIf="!isSoloNomina(empleado) && isNominaRecibida(fecha, empleado)">💰</small>
+                  <!-- Nómina pagada para todos los empleados -->
+                  <small class="nomina-recibida" *ngIf="!isSoloNomina(empleado) && isNominaPagada(fecha, empleado)">💰</small>
+
+                  <!-- Nómina registrada pero pendiente de pago -->
+                  <small class="nomina-pendiente" *ngIf="!isSoloNomina(empleado) && isNominaRecibida(fecha, empleado) && !isNominaPagada(fecha, empleado)">$</small>
                 </div>
               </div>
             </div>
@@ -190,7 +193,13 @@
         <div class="col-md-3">
           <div class="leyenda-item">
             <span>💰</span>
-            <span>Nómina recibida (Farzin/Evelyn)</span>
+            <span>Nómina pagada (Farzin/Evelyn)</span>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="leyenda-item">
+            <span>$</span>
+            <span>Nómina registrada (pendiente)</span>
           </div>
         </div>
         <div class="col-md-3">

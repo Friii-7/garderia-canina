@@ -26,6 +26,7 @@ export interface RegistroNomina {
   empleado: string;
   monto?: number;
   observaciones?: string;
+  pagoRealizado?: boolean; // Nuevo campo para indicar si la nómina está pagada
 }
 
 export interface EmpleadoInfo {
@@ -160,7 +161,8 @@ export class EmpleadosFormularioComponent implements OnInit {
           fecha: data.fecha,
           empleado: data.empleado,
           monto: data.monto,
-          observaciones: data.observaciones
+          observaciones: data.observaciones,
+          pagoRealizado: data.pagoRealizado // Asignar el nuevo campo
         });
       });
     } catch (error) {
@@ -203,7 +205,7 @@ export class EmpleadosFormularioComponent implements OnInit {
     if (!fecha) return 'dia-vacio';
 
     const diaTrabajo = this.isDiaTrabajado(fecha, empleado);
-    const nominaRecibida = this.isNominaRecibida(fecha, empleado);
+    const nominaPagada = this.isNominaPagada(fecha, empleado);
     const empleadoInfo = this.getEmpleadoInfo(empleado);
     let clase = '';
 
@@ -218,7 +220,7 @@ export class EmpleadosFormularioComponent implements OnInit {
 
     // Si el empleado solo registra nómina (Saul)
     if (this.isSoloNomina(empleado)) {
-      if (nominaRecibida) {
+      if (nominaPagada) {
         clase = 'nomina-recibida';
       } else if (esFechaNomina) {
         clase = 'fecha-nomina-pendiente';
@@ -237,8 +239,8 @@ export class EmpleadosFormularioComponent implements OnInit {
         clase = 'dia-laboral';
       }
 
-      // Agregar clase de nómina si recibió nómina en ese día
-      if (nominaRecibida) {
+      // Agregar clase de nómina si la nómina está pagada en ese día
+      if (nominaPagada) {
         clase += ' nomina-recibida';
       }
     }
@@ -321,6 +323,11 @@ export class EmpleadosFormularioComponent implements OnInit {
     return this.registrosNomina[empleado].find(registro => registro.fecha === fechaStr) || null;
   }
 
+  isNominaPagada(fecha: Date, empleado: string): boolean {
+    const nominaRecibida = this.isNominaRecibida(fecha, empleado);
+    return nominaRecibida ? (nominaRecibida.pagoRealizado || false) : false;
+  }
+
   async agregarNomina() {
     if (this.nuevoRegistroNomina.fechaInicio && this.nuevoRegistroNomina.fechaFin && this.nuevoRegistroNomina.empleado) {
       // Validar que la fecha de fin no sea anterior a la de inicio
@@ -374,7 +381,8 @@ export class EmpleadosFormularioComponent implements OnInit {
           fecha: fecha.toISOString().split('T')[0],
           empleado: this.nuevoRegistroNomina.empleado,
           monto: this.nuevoRegistroNomina.monto,
-          observaciones: this.nuevoRegistroNomina.observaciones
+          observaciones: this.nuevoRegistroNomina.observaciones,
+          pagoRealizado: this.nuevoRegistroNomina.pagoRealizado // Asignar el nuevo campo
         };
 
         await this.ngZone.runOutsideAngular(async () => {
@@ -391,7 +399,8 @@ export class EmpleadosFormularioComponent implements OnInit {
         fechaFin: '',
         empleado: '',
         monto: 0,
-        observaciones: ''
+        observaciones: '',
+        pagoRealizado: false // Limpiar el nuevo campo
       };
 
       this.registroGuardado.emit();
@@ -432,6 +441,7 @@ export class EmpleadosFormularioComponent implements OnInit {
 
     const diaTrabajo = this.isDiaTrabajado(fecha, empleado);
     const nominaRecibida = this.isNominaRecibida(fecha, empleado);
+    const nominaPagada = this.isNominaPagada(fecha, empleado);
     const empleadoInfo = this.getEmpleadoInfo(empleado);
     const esDiaLaboral = this.isDiaLaboral(fecha, empleado);
     const esFechaNomina = this.isFechaNomina(fecha, empleado);
@@ -441,8 +451,16 @@ export class EmpleadosFormularioComponent implements OnInit {
 
     // Si el empleado solo registra nómina (Saul)
     if (this.isSoloNomina(empleado)) {
-      if (nominaRecibida) {
-        tooltip += ` - Nómina recibida`;
+      if (nominaPagada) {
+        tooltip += ` - Nómina pagada`;
+        if (nominaRecibida && nominaRecibida.monto) {
+          tooltip += ` ($${nominaRecibida.monto})`;
+        }
+        if (nominaRecibida && nominaRecibida.observaciones) {
+          tooltip += ` - ${nominaRecibida.observaciones}`;
+        }
+      } else if (nominaRecibida) {
+        tooltip += ' - Nómina registrada (pendiente)';
         if (nominaRecibida.monto) {
           tooltip += ` ($${nominaRecibida.monto})`;
         }
@@ -450,7 +468,7 @@ export class EmpleadosFormularioComponent implements OnInit {
           tooltip += ` - ${nominaRecibida.observaciones}`;
         }
       } else if (esFechaNomina) {
-        tooltip += ' - Fecha de nómina (pendiente)';
+        tooltip += ' - Fecha de nómina (sin registrar)';
       } else {
         tooltip += ' - No es fecha de nómina';
       }
@@ -469,9 +487,17 @@ export class EmpleadosFormularioComponent implements OnInit {
         tooltip += ' - No es día laboral';
       }
 
-      // Agregar información de nómina si recibió
-      if (nominaRecibida) {
-        tooltip += ' - Nómina recibida';
+      // Agregar información de nómina
+      if (nominaPagada) {
+        tooltip += ' - Nómina pagada';
+        if (nominaRecibida && nominaRecibida.monto) {
+          tooltip += ` ($${nominaRecibida.monto})`;
+        }
+        if (nominaRecibida && nominaRecibida.observaciones) {
+          tooltip += ` - ${nominaRecibida.observaciones}`;
+        }
+      } else if (nominaRecibida) {
+        tooltip += ' - Nómina registrada (pendiente)';
         if (nominaRecibida.monto) {
           tooltip += ` ($${nominaRecibida.monto})`;
         }
