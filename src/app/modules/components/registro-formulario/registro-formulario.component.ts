@@ -72,6 +72,14 @@ export class RegistroFormularioComponent {
   };
 
   actualizarIngresos() {
+    // Verificar si el nombre es "chepe" o "ramon" (sin importar mayúsculas/minúsculas)
+    const nombreLower = this.nombreMascota.toLowerCase().trim();
+    if (nombreLower === 'chepe' || nombreLower === 'ramon') {
+      this.ingresos = 0;
+      this.calcularTotal();
+      return;
+    }
+
     const rateDia = parseFloat(this.tamanoPerro) || 0;
     const dias = this.diasAlojamiento || 0;
     const costoAloja = rateDia * dias;
