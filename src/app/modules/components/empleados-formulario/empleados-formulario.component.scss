@@ -1,6 +1,176 @@
 .empleados-formulario {
   padding: 20px;
 
+  // Page header styling
+  .page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+    h2 {
+      color: white;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1.1rem;
+    }
+  }
+
+  // Form styling improvements
+  .card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-bottom: 2px solid #dee2e6;
+      border-radius: 1rem 1rem 0 0 !important;
+      padding: 1.5rem;
+
+      h5 {
+        color: #495057;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+      }
+    }
+
+    .card-body {
+      padding: 2rem;
+    }
+  }
+
+  // Form group styling
+  .form-group {
+    margin-bottom: 1.5rem;
+
+    .form-label {
+      color: #495057;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      font-size: 0.95rem;
+    }
+
+    .form-control, .form-select {
+      border: 2px solid #e9ecef;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+
+      &:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+      }
+
+      &:hover {
+        border-color: #86b7fe;
+      }
+    }
+
+    .form-select-lg, .form-control-lg {
+      padding: 1rem 1.25rem;
+      font-size: 1.1rem;
+    }
+
+    .input-group {
+      .input-group-text {
+        background-color: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-right: none;
+        border-radius: 0.75rem 0 0 0.75rem;
+        color: #6c757d;
+        font-weight: 600;
+      }
+
+      .form-control {
+        border-left: none;
+        border-radius: 0 0.75rem 0.75rem 0;
+      }
+    }
+  }
+
+  // Button styling
+  .btn {
+    border-radius: 0.75rem;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+
+    &.btn-warning {
+      background: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%);
+      border: none;
+      color: #212529;
+
+      &:hover {
+        background: linear-gradient(135deg, #ffb300 0%, #ff7f00 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+
+  // Material form field styling to match Bootstrap
+  mat-form-field {
+    width: 100%;
+
+    .mat-mdc-form-field {
+      width: 100%;
+    }
+
+    .mat-mdc-text-field-wrapper {
+      background-color: #fff;
+      border: 2px solid #e9ecef;
+      border-radius: 0.75rem;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: #86b7fe;
+      }
+
+      &.mat-focused {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+      }
+    }
+
+    .mat-mdc-form-field-focus-overlay {
+      background-color: transparent;
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+
+    .mat-mdc-form-field-label {
+      color: #495057;
+      font-weight: 600;
+    }
+
+    .mat-mdc-input-element {
+      font-size: 1rem;
+      padding: 0.75rem 0;
+    }
+  }
+
   .calendarios-empleados {
     .calendario-empleado {
       .card-header {
@@ -216,12 +386,55 @@
               box-shadow: none;
             }
           }
+
+          // Días clickeables
+          &.clickeable {
+            cursor: pointer;
+            position: relative;
+
+            &:hover {
+              background-color: #e3f2fd;
+              border-color: #2196f3;
+              transform: scale(1.05);
+              box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+            }
+
+            &:active {
+              transform: scale(1.02);
+            }
+
+            &::before {
+              content: '👆';
+              position: absolute;
+              top: 2px;
+              left: 2px;
+              font-size: 0.6em;
+              opacity: 0.7;
+            }
+          }
+
+          // Días clickeables que ya están trabajados
+          &.clickeable.dia-trabajado {
+            &:hover {
+              background-color: #c8e6c9;
+              border-color: #4caf50;
+              box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+            }
+
+            &::before {
+              content: '✏️';
+            }
+          }
         }
       }
     }
   }
 
   // Leyenda
+  .leyenda-section {
+    display: none; // Ocultar completamente la sección de leyenda
+  }
+
   .leyenda {
     .leyenda-item {
       display: flex;

@@ -1,76 +1,105 @@
 <div class="empleados-formulario">
-  <h2 class="mb-4">Calendario de Empleados</h2>
-
-
+  <div class="page-header mb-4">
+    <h2 class="mb-2">
+      <i class="bi bi-calendar-week me-3"></i>
+      Calendario de Empleados
+    </h2>
+    <p class="text-muted mb-0">Gestiona los horarios, nóminas y registros de trabajo de los empleados</p>
+  </div>
 
   <!-- Formulario para agregar nómina -->
   <div class="card mb-4">
     <div class="card-header">
-      <h5>Registrar Nómina</h5>
+      <h5 class="mb-0">
+        <i class="bi bi-calendar-plus me-2"></i>
+        Registrar Nómina
+      </h5>
     </div>
     <div class="card-body">
-      <form (ngSubmit)="agregarNomina()" class="row g-3">
-        <div class="col-md-3">
-          <label for="fechaInicio" class="form-label">Fecha inicio *</label>
-          <input
-            type="date"
-            class="form-control"
-            id="fechaInicio"
-            [(ngModel)]="nuevoRegistroNomina.fechaInicio"
-            name="fechaInicio"
-            required>
+      <form (ngSubmit)="agregarNomina()" class="row g-4">
+        <!-- Primera fila: Fecha y Empleado -->
+        <div class="col-lg-6">
+          <mat-form-field class="w-100">
+            <mat-label>
+              <i class="bi bi-calendar-range me-1"></i>
+              Rango de fechas
+            </mat-label>
+            <mat-date-range-input [rangePicker]="picker">
+              <input matStartDate placeholder="Fecha inicio" [(ngModel)]="fechaRango.inicio" name="fechaInicio">
+              <input matEndDate placeholder="Fecha fin" [(ngModel)]="fechaRango.fin" name="fechaFin">
+            </mat-date-range-input>
+            <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-date-range-picker #picker></mat-date-range-picker>
+          </mat-form-field>
         </div>
 
-        <div class="col-md-3">
-          <label for="fechaFin" class="form-label">Fecha fin *</label>
-          <input
-            type="date"
-            class="form-control"
-            id="fechaFin"
-            [(ngModel)]="nuevoRegistroNomina.fechaFin"
-            name="fechaFin"
-            required>
+        <div class="col-lg-6">
+          <div class="form-group">
+            <label for="empleadoNomina" class="form-label fw-bold">
+              <i class="bi bi-person-badge me-1"></i>
+              Empleado *
+            </label>
+            <select
+              class="form-select form-select-lg"
+              id="empleadoNomina"
+              [(ngModel)]="nuevoRegistroNomina.empleado"
+              name="empleadoNomina"
+              required>
+              <option value="">Seleccionar empleado</option>
+              <option *ngFor="let empleado of empleados" [value]="empleado">
+                {{ empleado }}
+              </option>
+            </select>
+          </div>
         </div>
 
-        <div class="col-md-3">
-          <label for="empleadoNomina" class="form-label">Empleado</label>
-          <select
-            class="form-select"
-            id="empleadoNomina"
-            [(ngModel)]="nuevoRegistroNomina.empleado"
-            name="empleadoNomina"
-            required>
-            <option value="">Seleccionar empleado</option>
-            <option *ngFor="let empleado of empleados" [value]="empleado">
-              {{ empleado }}
-            </option>
-          </select>
+        <!-- Segunda fila: Monto y Observaciones -->
+        <div class="col-lg-6">
+          <div class="form-group">
+            <label for="monto" class="form-label fw-bold">
+              <i class="bi bi-currency-dollar me-1"></i>
+              Monto (opcional)
+            </label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              <input
+                type="number"
+                class="form-control form-control-lg"
+                id="monto"
+                [(ngModel)]="nuevoRegistroNomina.monto"
+                name="monto"
+                placeholder="0.00"
+                step="0.01"
+                min="0">
+            </div>
+          </div>
         </div>
 
-        <div class="col-md-3">
-          <label for="monto" class="form-label">Monto (opcional)</label>
-          <input
-            type="number"
-            class="form-control"
-            id="monto"
-            [(ngModel)]="nuevoRegistroNomina.monto"
-            name="monto"
-            placeholder="0">
+        <div class="col-lg-6">
+          <div class="form-group">
+            <label for="observaciones" class="form-label fw-bold">
+              <i class="bi bi-chat-text me-1"></i>
+              Observaciones
+            </label>
+            <input
+              type="text"
+              class="form-control form-control-lg"
+              id="observaciones"
+              [(ngModel)]="nuevoRegistroNomina.observaciones"
+              name="observaciones"
+              placeholder="Observaciones adicionales">
+          </div>
         </div>
 
-        <div class="col-md-3">
-          <label for="observaciones" class="form-label">Observaciones</label>
-          <input
-            type="text"
-            class="form-control"
-            id="observaciones"
-            [(ngModel)]="nuevoRegistroNomina.observaciones"
-            name="observaciones"
-            placeholder="Observaciones">
-        </div>
-
+        <!-- Tercera fila: Botón de envío -->
         <div class="col-12">
-          <button type="submit" class="btn btn-warning">Registrar Nómina</button>
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-warning btn-lg px-4">
+              <i class="bi bi-check-circle me-2"></i>
+              Registrar Nómina
+            </button>
+          </div>
         </div>
       </form>
     </div>
@@ -83,7 +112,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
           <div class="empleado-info">
             <h4>{{ empleado }}</h4>
-                                    <small class="text-muted">
+            <small class="text-muted">
               <span *ngIf="isSoloNomina(empleado)">
                 Solo registra nómina | Fechas: {{ getFechasNominaTexto(empleado) }}
               </span>
@@ -113,15 +142,17 @@
               </div>
             </div>
 
-                        <!-- Días del mes -->
+            <!-- Días del mes -->
             <div class="calendario-body">
-                            <div
+              <div
                 class="dia-calendario"
                 *ngFor="let fecha of getDiasDelMes()"
                 [class]="getClaseDia(fecha, empleado)"
-                [title]="getTooltipDia(fecha, empleado)">
+                [class.clickeable]="esDiaClickeable(fecha, empleado)"
+                [title]="getTooltipDia(fecha, empleado)"
+                (click)="fecha && seleccionarDia(fecha, empleado)">
                 <div class="numero-dia" *ngIf="fecha">{{ fecha.getDate() }}</div>
-                                <div class="info-dia" *ngIf="fecha">
+                <div class="info-dia" *ngIf="fecha">
                   <!-- Para empleados que solo registran nómina (Saul) -->
                   <small class="nomina-recibida" *ngIf="isSoloNomina(empleado) && isNominaPagada(fecha, empleado)">✓</small>
                   <small class="nomina-pendiente" *ngIf="isSoloNomina(empleado) && isFechaNomina(fecha, empleado) && !isNominaPagada(fecha, empleado)">$</small>
@@ -148,7 +179,7 @@
   </div>
 
   <!-- Leyenda -->
-  <div class="card mt-4">
+  <div class="card mt-4 leyenda-section">
     <div class="card-header">
       <h5>Leyenda</h5>
     </div>
@@ -214,61 +245,52 @@
             <span>Pago realizado</span>
           </div>
         </div>
+        <div class="col-md-3">
+          <div class="leyenda-item">
+            <span>👆</span>
+            <span>Día clickeable (registrar trabajo)</span>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="leyenda-item">
+            <span>✏️</span>
+            <span>Día trabajado (click para eliminar)</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal de confirmación -->
+<!-- Modales unificados -->
 <app-confirmacion-modal
-  [mostrar]="mostrarModal"
-  [datos]="datosModal"
-  (confirmar)="confirmarAgregarNomina()"
-  (cancelar)="cancelarAgregarNomina()"
-  (cerrar)="cancelarAgregarNomina()">
+  [mostrar]="modales.confirmation.mostrar"
+  [datos]="modales.confirmation.datos"
+  (confirmar)="onModalConfirmar('confirmation')"
+  (cancelar)="onModalCancelar('confirmation')"
+  (cerrar)="onModalCerrar('confirmation')">
 </app-confirmacion-modal>
 
-<!-- Modal de validación -->
 <app-confirmacion-modal
-  [mostrar]="mostrarModalValidacion"
-  [datos]="datosModalValidacion"
-  (confirmar)="cerrarModalValidacion()"
-  (cancelar)="cerrarModalValidacion()"
-  (cerrar)="cerrarModalValidacion()">
+  [mostrar]="modales.success.mostrar"
+  [datos]="modales.success.datos"
+  (confirmar)="onModalConfirmar('success')"
+  (cancelar)="onModalCancelar('success')"
+  (cerrar)="onModalCerrar('success')">
 </app-confirmacion-modal>
 
-<!-- Modal de error de fechas -->
 <app-confirmacion-modal
-  [mostrar]="mostrarModalErrorFechas"
-  [datos]="datosModalErrorFechas"
-  (confirmar)="cerrarModalErrorFechas()"
-  (cancelar)="cerrarModalErrorFechas()"
-  (cerrar)="cerrarModalErrorFechas()">
+  [mostrar]="modales.error.mostrar"
+  [datos]="modales.error.datos"
+  (confirmar)="onModalConfirmar('error')"
+  (cancelar)="onModalCancelar('error')"
+  (cerrar)="onModalCerrar('error')">
 </app-confirmacion-modal>
 
-<!-- Modal de error de fechas inválidas -->
 <app-confirmacion-modal
-  [mostrar]="mostrarModalErrorFechasInvalidas"
-  [datos]="datosModalErrorFechasInvalidas"
-  (confirmar)="cerrarModalErrorFechasInvalidas()"
-  (cancelar)="cerrarModalErrorFechasInvalidas()"
-  (cerrar)="cerrarModalErrorFechasInvalidas()">
-</app-confirmacion-modal>
-
-<!-- Modal de éxito -->
-<app-confirmacion-modal
-  [mostrar]="mostrarModalExito"
-  [datos]="datosModalExito"
-  (confirmar)="cerrarModalExito()"
-  (cancelar)="cerrarModalExito()"
-  (cerrar)="cerrarModalExito()">
-</app-confirmacion-modal>
-
-<!-- Modal de error -->
-<app-confirmacion-modal
-  [mostrar]="mostrarModalError"
-  [datos]="datosModalError"
-  (confirmar)="cerrarModalError()"
-  (cancelar)="cerrarModalError()"
-  (cerrar)="cerrarModalError()">
+  [mostrar]="modales.validation.mostrar"
+  [datos]="modales.validation.datos"
+  (confirmar)="onModalConfirmar('validation')"
+  (cancelar)="onModalCancelar('validation')"
+  (cerrar)="onModalCerrar('validation')">
 </app-confirmacion-modal>
