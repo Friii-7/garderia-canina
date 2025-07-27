@@ -1,0 +1,48 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-12">
+          <h1 class="page-title">
+            <i class="fas fa-dog me-3"></i>Registro de Perros
+          </h1>
+          <p class="page-subtitle">Gestiona el registro de perros y sus propietarios</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-4">
+    <!-- Formulario de Registro -->
+    <div class="row mb-5" #formSection>
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-edit me-2"></i>Formulario de Registro
+            </h5>
+          </div>
+          <div class="card-body">
+            <app-registro-formulario (nuevoRegistro)="tablaRegistros.actualizarTabla()"></app-registro-formulario>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Registros -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-table me-2"></i>Registros de Perros
+            </h5>
+          </div>
+          <div class="card-body">
+            <app-tabla-registros #tablaRegistros></app-tabla-registros>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,46 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-12">
+          <h1 class="page-title">
+            <i class="fas fa-users me-3"></i>Empleados
+          </h1>
+          <p class="page-subtitle">Gestiona el personal de la guardería canina</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-4">
+    <div class="row">
+      <!-- Formulario de Empleados -->
+      <div class="col-md-6 mb-4" #formSection>
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-edit me-2"></i>Formulario de Empleados
+            </h5>
+          </div>
+          <div class="card-body">
+            <app-empleados-formulario (registroGuardado)="empleadosTabla.actualizarTabla()"></app-empleados-formulario>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de Empleados -->
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-warning text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-table me-2"></i>Lista de Empleados
+            </h5>
+          </div>
+          <div class="card-body">
+            <app-empleados-tabla #empleadosTabla></app-empleados-tabla>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

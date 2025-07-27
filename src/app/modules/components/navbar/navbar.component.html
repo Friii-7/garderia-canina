@@ -1,0 +1,41 @@
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container">
+    <!-- Logo y nombre -->
+    <a class="navbar-brand d-flex align-items-center" href="https://gurderiacaninaestadio.com/" target="_blank" rel="noopener noreferrer">
+      <img src="assets/ui/logo.jpg" alt="Logo Guardería Canina" class="navbar-logo me-2">
+      <span class="brand-text">Guardería Canina</span>
+    </a>
+
+    <!-- Botón hamburguesa para móvil -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Enlaces de navegación -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/" routerLinkActive="active">
+            <i class="fas fa-home me-1"></i>Inicio
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/registro-perros" routerLinkActive="active">
+            <i class="fas fa-dog me-1"></i>Registro de Perros
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/contabilidad" routerLinkActive="active">
+            <i class="fas fa-calculator me-1"></i>Contabilidad
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/empleados" routerLinkActive="active">
+            <i class="fas fa-users me-1"></i>Empleados
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
