@@ -151,7 +151,6 @@
                     *ngFor="let fecha of getDiasDelMes()"
                     [class]="getClaseDia(fecha, empleado)"
                     [class.clickeable]="esDiaClickeable(fecha, empleado)"
-                    [title]="getTooltipDia(fecha, empleado)"
                     (click)="fecha && seleccionarDia(fecha, empleado)">
                     <div class="numero-dia" *ngIf="fecha">{{ fecha.getDate() }}</div>
                     <div class="info-dia" *ngIf="fecha">

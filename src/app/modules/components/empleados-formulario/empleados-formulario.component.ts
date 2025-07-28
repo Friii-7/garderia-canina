@@ -1,25 +1,19 @@
-import { Component, EventEmitter, Output, NgZone, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Output, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Firestore, collection, addDoc, query, where, getDocs, deleteDoc, doc } from '@angular/fire/firestore';
-import { ConfirmacionModalComponent, ConfirmacionModalData } from '../confirmacion-modal/confirmacion-modal.component';
-import { Subject, takeUntil } from 'rxjs';
+import { Firestore, collection, addDoc, query, where, getDocs, deleteDoc } from '@angular/fire/firestore';
+import { ConfirmacionModalComponent } from '../confirmacion-modal/confirmacion-modal.component';
+import { Subject } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 
-// Interfaces
+// Interfaces optimizadas
 export interface EmpleadoRegistro {
   id?: string;
   fecha: string;
   empleado: string;
-  turno: 'Día' | 'Noche';
-  pago: boolean;
-}
-
-export interface DiaTrabajo {
-  fecha: string;
   turno: 'Día' | 'Noche';
   pago: boolean;
 }
@@ -37,10 +31,22 @@ export interface EmpleadoInfo {
   nombre: string;
   diasLaborales: number[];
   fechasNomina: number[];
-  colorEspecial?: string;
   turnoPredeterminado?: 'Día' | 'Noche';
   diasFestivos?: boolean;
   soloNomina?: boolean;
+}
+
+export interface ModalData {
+  titulo: string;
+  mensaje: string;
+  tipo: 'confirmar' | 'guardar';
+  textoBotonConfirmar: string;
+  textoBotonCancelar: string;
+}
+
+export interface FechaRango {
+  inicio: Date | null;
+  fin: Date | null;
 }
 
 @Component({
@@ -74,7 +80,6 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
       nombre: 'Saul',
       diasLaborales: [1, 2, 3, 4, 5, 6],
       fechasNomina: [6, 21],
-      colorEspecial: '#ff6b6b',
       soloNomina: true
     },
     {
@@ -92,12 +97,12 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
   ];
 
   // Estado del calendario
-  currentDate = new Date();
-  currentMonth: number = this.currentDate.getMonth();
-  currentYear: number = this.currentDate.getFullYear();
+  readonly currentDate = new Date();
+  currentMonth = this.currentDate.getMonth();
+  currentYear = this.currentDate.getFullYear();
 
   // Datos cargados
-  diasTrabajados: { [empleado: string]: DiaTrabajo[] } = {};
+  diasTrabajados: { [empleado: string]: EmpleadoRegistro[] } = {};
   registrosNomina: { [empleado: string]: RegistroNomina[] } = {};
 
   // Formularios
@@ -109,9 +114,9 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
     pagoRealizado: false
   };
 
-  fechaRango = {
-    inicio: null as Date | null,
-    fin: null as Date | null
+  fechaRango: FechaRango = {
+    inicio: null,
+    fin: null
   };
 
   nuevoRegistroTrabajo: Omit<EmpleadoRegistro, 'id'> = {
@@ -121,23 +126,14 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
     pago: false
   };
 
-  // Gestión simplificada de modales
+  // Gestión de modales
   modalActual = {
     mostrar: false,
-    datos: {
-      titulo: '',
-      mensaje: '',
-      tipo: 'confirmar' as 'confirmar' | 'eliminar' | 'editar' | 'guardar',
-      textoBotonConfirmar: 'Aceptar',
-      textoBotonCancelar: 'Cancelar'
-    }
+    datos: {} as ModalData
   };
 
   private callbackConfirmacion?: () => void;
-
-  // Inyecciones
   private firestore = inject(Firestore);
-  private ngZone = inject(NgZone);
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
@@ -173,9 +169,8 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
         this.diasTrabajados[data.empleado] = [];
       }
       this.diasTrabajados[data.empleado].push({
-        fecha: data.fecha,
-        turno: data.turno,
-        pago: data.pago
+        id: doc.id,
+        ...data
       });
     });
   }
@@ -192,11 +187,7 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
       }
       this.registrosNomina[data.empleado].push({
         id: doc.id,
-        fecha: data.fecha,
-        empleado: data.empleado,
-        monto: data.monto,
-        observaciones: data.observaciones,
-        pagoRealizado: data.pagoRealizado
+        ...data
       });
     });
   }
@@ -207,11 +198,13 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
     const ultimoDia = new Date(this.currentYear, this.currentMonth + 1, 0);
     const dias: (Date | null)[] = [];
 
+    // Agregar días vacíos al inicio
     const primerDiaSemana = primerDia.getDay();
     for (let i = 0; i < primerDiaSemana; i++) {
       dias.push(null);
     }
 
+    // Agregar días del mes
     for (let i = 1; i <= ultimoDia.getDate(); i++) {
       dias.push(new Date(this.currentYear, this.currentMonth, i));
     }
@@ -270,7 +263,7 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
   }
 
   // ===== MÉTODOS DE ESTADO DE DÍAS =====
-  isDiaTrabajado(fecha: Date | null, empleado: string): DiaTrabajo | null {
+  isDiaTrabajado(fecha: Date | null, empleado: string): EmpleadoRegistro | null {
     if (!fecha || !this.diasTrabajados[empleado]) return null;
 
     const fechaStr = fecha.toISOString().split('T')[0];
@@ -300,24 +293,26 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
     const esFechaNomina = this.isFechaNomina(fecha, empleado);
     const esDiaFestivo = this.isDiaFestivo(fecha);
 
+    // Lógica para empleados que solo registran nómina
     if (this.isSoloNomina(empleado)) {
       if (nominaPagada) {
         clases.push('nomina-recibida');
       } else if (esFechaNomina) {
         clases.push('fecha-nomina-pendiente');
       }
-    } else {
-      if (diaTrabajo) {
-        clases.push('dia-trabajado');
-        if (diaTrabajo.pago) clases.push('pago-realizado');
-        if (diaTrabajo.turno === 'Noche') clases.push('turno-noche');
-      } else if (esDiaLaboral) {
-        clases.push('dia-laboral');
-      }
-
-      if (nominaPagada) clases.push('nomina-recibida');
+      return clases.join(' ');
     }
 
+    // Lógica para empleados que trabajan
+    if (diaTrabajo) {
+      clases.push('dia-trabajado');
+      if (diaTrabajo.pago) clases.push('pago-realizado');
+      if (diaTrabajo.turno === 'Noche') clases.push('turno-noche');
+    } else if (esDiaLaboral) {
+      clases.push('dia-laboral');
+    }
+
+    if (nominaPagada) clases.push('nomina-recibida');
     if (esFechaNomina) clases.push('fecha-nomina');
     if (esDiaFestivo) clases.push('dia-festivo');
 
@@ -355,61 +350,6 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
     return empleadoInfo?.turnoPredeterminado || null;
   }
 
-  // ===== MÉTODOS DE TOOLTIP =====
-  getTooltipDia(fecha: Date | null, empleado: string): string {
-    if (!fecha) return '';
-
-    const tooltipParts: string[] = [`${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`];
-
-    const diaTrabajo = this.isDiaTrabajado(fecha, empleado);
-    const nominaRecibida = this.isNominaRecibida(fecha, empleado);
-    const nominaPagada = this.isNominaPagada(fecha, empleado);
-    const esDiaLaboral = this.isDiaLaboral(fecha, empleado);
-    const esFechaNomina = this.isFechaNomina(fecha, empleado);
-    const esDiaFestivo = this.isDiaFestivo(fecha);
-
-    if (this.isSoloNomina(empleado)) {
-      if (nominaPagada) {
-        tooltipParts.push('Nómina pagada');
-        if (nominaRecibida?.monto) tooltipParts.push(`($${nominaRecibida.monto})`);
-        if (nominaRecibida?.observaciones) tooltipParts.push(nominaRecibida.observaciones);
-      } else if (nominaRecibida) {
-        tooltipParts.push('Nómina registrada (pendiente)');
-        if (nominaRecibida.monto) tooltipParts.push(`($${nominaRecibida.monto})`);
-        if (nominaRecibida.observaciones) tooltipParts.push(nominaRecibida.observaciones);
-      } else if (esFechaNomina) {
-        tooltipParts.push('Fecha de nómina (sin registrar)');
-      } else {
-        tooltipParts.push('No es fecha de nómina');
-      }
-    } else {
-      if (diaTrabajo) {
-        tooltipParts.push(`Trabajó (${diaTrabajo.turno})`);
-        tooltipParts.push(diaTrabajo.pago ? 'Pago realizado' : 'Pago pendiente');
-      } else if (esDiaLaboral) {
-        tooltipParts.push('Día laboral (no registrado)');
-      } else {
-        tooltipParts.push('No es día laboral');
-      }
-
-      if (nominaPagada) {
-        tooltipParts.push('Nómina pagada');
-        if (nominaRecibida?.monto) tooltipParts.push(`($${nominaRecibida.monto})`);
-        if (nominaRecibida?.observaciones) tooltipParts.push(nominaRecibida.observaciones);
-      } else if (nominaRecibida) {
-        tooltipParts.push('Nómina registrada (pendiente)');
-        if (nominaRecibida.monto) tooltipParts.push(`($${nominaRecibida.monto})`);
-        if (nominaRecibida.observaciones) tooltipParts.push(nominaRecibida.observaciones);
-      }
-
-      if (esFechaNomina) tooltipParts.push('Fecha de nómina');
-    }
-
-    if (esDiaFestivo) tooltipParts.push('Día festivo');
-
-    return tooltipParts.join(' - ');
-  }
-
   // ===== MÉTODOS DE GESTIÓN DE MODALES =====
   private mostrarModal(titulo: string, mensaje: string, tipo: 'confirmar' | 'guardar' = 'confirmar', callback?: () => void): void {
     this.modalActual = {
@@ -419,7 +359,7 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
         mensaje,
         tipo,
         textoBotonConfirmar: tipo === 'guardar' ? 'Confirmar' : 'Aceptar',
-        textoBotonCancelar: tipo === 'guardar' ? 'Cancelar' : 'Cancelar'
+        textoBotonCancelar: 'Cancelar'
       }
     };
     this.callbackConfirmacion = callback;
@@ -500,19 +440,16 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
         registros.push(registro);
       }
 
-      const batch = [];
-      for (const registro of registros) {
-        batch.push(addDoc(collection(this.firestore, 'nomina'), registro));
-      }
+      const batch = registros.map(registro =>
+        addDoc(collection(this.firestore, 'nomina'), registro)
+      );
 
       await Promise.all(batch);
-
       await this.cargarRegistrosNomina();
       this.limpiarFormularioNomina();
       this.registroGuardado.emit();
 
-      const diasRegistrados = registros.length;
-      this.mostrarExito(`${diasRegistrados} registros de nómina agregados exitosamente para ${empleado}`);
+      this.mostrarExito(`${registros.length} registros de nómina agregados exitosamente para ${empleado}`);
 
     } catch (error) {
       console.error('Error al agregar nómina:', error);
