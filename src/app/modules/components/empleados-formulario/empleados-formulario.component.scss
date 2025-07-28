@@ -22,7 +22,7 @@
     }
   }
 
-  // Form styling improvements
+  // Card styling
   .card {
     border: none;
     border-radius: 1rem;
@@ -52,7 +52,7 @@
     }
   }
 
-  // Form group styling
+  // Form styling
   .form-group {
     margin-bottom: 1.5rem;
 
@@ -128,7 +128,7 @@
     }
   }
 
-  // Material form field styling to match Bootstrap
+  // Material form field styling
   mat-form-field {
     width: 100%;
 
@@ -171,6 +171,7 @@
     }
   }
 
+  // Calendar styling
   .calendarios-empleados {
     .calendario-empleado {
       .card {
@@ -297,7 +298,7 @@
               }
             }
 
-            // Estilos para días trabajados
+            // Day states
             &.dia-trabajado {
               background-color: #d4edda;
               border-color: #c3e6cb;
@@ -307,7 +308,6 @@
               }
             }
 
-            // Estilos para días laborales (no registrados)
             &.dia-laboral {
               background-color: #fff3cd;
               border-color: #ffeaa7;
@@ -318,7 +318,6 @@
               }
             }
 
-            // Estilos para turno noche
             &.turno-noche {
               background-color: #cce5ff;
               border-color: #b3d7ff;
@@ -332,7 +331,6 @@
               }
             }
 
-            // Estilos para pago realizado
             &.pago-realizado {
               background-color: #d1ecf1;
               border-color: #bee5eb;
@@ -349,13 +347,11 @@
               }
             }
 
-            // Combinación de estilos
             &.dia-trabajado.turno-noche.pago-realizado {
               background-color: #e2e3e5;
               border-color: #d6d8db;
             }
 
-            // Fecha de nómina
             &.fecha-nomina {
               position: relative;
 
@@ -370,7 +366,6 @@
               }
             }
 
-            // Día festivo
             &.dia-festivo {
               position: relative;
 
@@ -383,7 +378,6 @@
               }
             }
 
-            // Nómina recibida
             &.nomina-recibida {
               background-color: #d4edda;
               border-color: #c3e6cb;
@@ -393,7 +387,6 @@
               }
             }
 
-            // Fecha de nómina pendiente
             &.fecha-nomina-pendiente {
               background-color: #f8d7da;
               border-color: #f5c6cb;
@@ -404,7 +397,6 @@
               }
             }
 
-            // Días vacíos
             &.dia-vacio {
               background-color: #f8f9fa;
               border-color: #e9ecef;
@@ -416,7 +408,6 @@
               }
             }
 
-            // Días clickeables
             &.clickeable {
               cursor: pointer;
               position: relative;
@@ -440,18 +431,17 @@
                 font-size: 0.6em;
                 opacity: 0.7;
               }
-            }
 
-            // Días clickeables que ya están trabajados
-            &.clickeable.dia-trabajado {
-              &:hover {
-                background-color: #c8e6c9;
-                border-color: #4caf50;
-                box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-              }
+              &.dia-trabajado {
+                &:hover {
+                  background-color: #c8e6c9;
+                  border-color: #4caf50;
+                  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+                }
 
-              &::before {
-                content: '✏️';
+                &::before {
+                  content: '✏️';
+                }
               }
             }
           }
@@ -460,68 +450,12 @@
     }
   }
 
-  // Leyenda
+  // Hide legend section
   .leyenda-section {
-    display: none; // Ocultar completamente la sección de leyenda
+    display: none;
   }
 
-  .leyenda {
-    .leyenda-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-
-      .indicador {
-        width: 20px;
-        height: 20px;
-        border-radius: 3px;
-        border: 1px solid #dee2e6;
-
-        &.dia-trabajado {
-          background-color: #d4edda;
-          border-color: #c3e6cb;
-        }
-
-        &.turno-noche {
-          background-color: #cce5ff;
-          border-color: #b3d7ff;
-        }
-
-        &.pago-realizado {
-          background-color: #d1ecf1;
-          border-color: #bee5eb;
-        }
-
-        &.dia-laboral {
-          background-color: #fff3cd;
-          border-color: #ffeaa7;
-        }
-
-        &.fecha-nomina {
-          background-color: #fff3cd;
-          border-color: #ffc107;
-        }
-
-        &.dia-festivo {
-          background-color: #f8d7da;
-          border-color: #dc3545;
-        }
-
-        &.nomina-recibida {
-          background-color: #d4edda;
-          border-color: #c3e6cb;
-        }
-
-        &.fecha-nomina-pendiente {
-          background-color: #f8d7da;
-          border-color: #f5c6cb;
-        }
-      }
-    }
-  }
-
-  // Responsive
+  // Responsive design
   @media (max-width: 768px) {
     .calendario {
       .calendario-header .dia-header {
@@ -556,7 +490,7 @@
   }
 }
 
-// Responsive design
+// Mobile responsive
 @media (max-width: 768px) {
   .calendarios-empleados {
     .row {
