@@ -262,35 +262,11 @@
   </div>
 </div>
 
-<!-- Modales unificados -->
+<!-- Modal unificado -->
 <app-confirmacion-modal
-  [mostrar]="modales.confirmation.mostrar"
-  [datos]="modales.confirmation.datos"
-  (confirmar)="onModalConfirmar('confirmation')"
-  (cancelar)="onModalCancelar('confirmation')"
-  (cerrar)="onModalCerrar('confirmation')">
-</app-confirmacion-modal>
-
-<app-confirmacion-modal
-  [mostrar]="modales.success.mostrar"
-  [datos]="modales.success.datos"
-  (confirmar)="onModalConfirmar('success')"
-  (cancelar)="onModalCancelar('success')"
-  (cerrar)="onModalCerrar('success')">
-</app-confirmacion-modal>
-
-<app-confirmacion-modal
-  [mostrar]="modales.error.mostrar"
-  [datos]="modales.error.datos"
-  (confirmar)="onModalConfirmar('error')"
-  (cancelar)="onModalCancelar('error')"
-  (cerrar)="onModalCerrar('error')">
-</app-confirmacion-modal>
-
-<app-confirmacion-modal
-  [mostrar]="modales.validation.mostrar"
-  [datos]="modales.validation.datos"
-  (confirmar)="onModalConfirmar('validation')"
-  (cancelar)="onModalCancelar('validation')"
-  (cerrar)="onModalCerrar('validation')">
+  [mostrar]="modalActual.mostrar"
+  [datos]="modalActual.datos"
+  (confirmar)="onModalConfirmar()"
+  (cancelar)="onModalCancelar()"
+  (cerrar)="onModalCerrar()">
 </app-confirmacion-modal>

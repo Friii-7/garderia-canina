@@ -9,7 +9,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 
-// Interfaces mejoradas con tipado más específico
+// Interfaces
 export interface EmpleadoRegistro {
   id?: string;
   fecha: string;
@@ -35,26 +35,12 @@ export interface RegistroNomina {
 
 export interface EmpleadoInfo {
   nombre: string;
-  diasLaborales: number[]; // 0=Domingo, 1=Lunes, ..., 6=Sábado
-  fechasNomina: number[]; // Días del mes para pago de nómina
+  diasLaborales: number[];
+  fechasNomina: number[];
   colorEspecial?: string;
   turnoPredeterminado?: 'Día' | 'Noche';
   diasFestivos?: boolean;
   soloNomina?: boolean;
-}
-
-// Enum para tipos de modales
-enum ModalType {
-  CONFIRMATION = 'confirmation',
-  SUCCESS = 'success',
-  ERROR = 'error',
-  VALIDATION = 'validation'
-}
-
-// Interface para gestión de modales
-interface ModalState {
-  mostrar: boolean;
-  datos: ConfirmacionModalData;
 }
 
 @Component({
@@ -123,7 +109,6 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
     pagoRealizado: false
   };
 
-  // Date range for payroll
   fechaRango = {
     inicio: null as Date | null,
     fin: null as Date | null
@@ -136,49 +121,19 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
     pago: false
   };
 
-  // Gestión unificada de modales
-  modales: { [key in ModalType]: ModalState } = {
-    [ModalType.CONFIRMATION]: {
-      mostrar: false,
-      datos: {
-        titulo: 'Confirmar Acción',
-        mensaje: '¿Estás seguro de que quieres realizar esta acción?',
-        tipo: 'guardar',
-        textoBotonConfirmar: 'Confirmar',
-        textoBotonCancelar: 'Cancelar'
-      }
-    },
-    [ModalType.SUCCESS]: {
-      mostrar: false,
-      datos: {
-        titulo: 'Éxito',
-        mensaje: 'Operación realizada exitosamente',
-        tipo: 'confirmar',
-        textoBotonConfirmar: 'Aceptar'
-      }
-    },
-    [ModalType.ERROR]: {
-      mostrar: false,
-      datos: {
-        titulo: 'Error',
-        mensaje: 'Ha ocurrido un error',
-        tipo: 'confirmar',
-        textoBotonConfirmar: 'Aceptar'
-      }
-    },
-    [ModalType.VALIDATION]: {
-      mostrar: false,
-      datos: {
-        titulo: 'Validación',
-        mensaje: 'Por favor completa todos los campos requeridos',
-        tipo: 'confirmar',
-        textoBotonConfirmar: 'Aceptar'
-      }
+  // Gestión simplificada de modales
+  modalActual = {
+    mostrar: false,
+    datos: {
+      titulo: '',
+      mensaje: '',
+      tipo: 'confirmar' as 'confirmar' | 'eliminar' | 'editar' | 'guardar',
+      textoBotonConfirmar: 'Aceptar',
+      textoBotonCancelar: 'Cancelar'
     }
   };
 
-  // Callbacks para modales
-  private modalCallbacks: { [key in ModalType]?: () => void } = {};
+  private callbackConfirmacion?: () => void;
 
   // Inyecciones
   private firestore = inject(Firestore);
@@ -252,13 +207,11 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
     const ultimoDia = new Date(this.currentYear, this.currentMonth + 1, 0);
     const dias: (Date | null)[] = [];
 
-    // Días vacíos al inicio
     const primerDiaSemana = primerDia.getDay();
     for (let i = 0; i < primerDiaSemana; i++) {
       dias.push(null);
     }
 
-    // Días del mes
     for (let i = 1; i <= ultimoDia.getDate(); i++) {
       dias.push(new Date(this.currentYear, this.currentMonth, i));
     }
@@ -348,14 +301,12 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
     const esDiaFestivo = this.isDiaFestivo(fecha);
 
     if (this.isSoloNomina(empleado)) {
-      // Lógica para empleados que solo registran nómina
       if (nominaPagada) {
         clases.push('nomina-recibida');
       } else if (esFechaNomina) {
         clases.push('fecha-nomina-pendiente');
       }
     } else {
-      // Lógica para empleados que trabajan
       if (diaTrabajo) {
         clases.push('dia-trabajado');
         if (diaTrabajo.pago) clases.push('pago-realizado');
@@ -379,7 +330,7 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
   }
 
   // ===== MÉTODOS DE INFORMACIÓN =====
-    getDiasLaboralesTexto(empleado: string): string {
+  getDiasLaboralesTexto(empleado: string): string {
     const empleadoInfo = this.getEmpleadoInfo(empleado);
     if (!empleadoInfo) return 'No definido';
 
@@ -393,7 +344,7 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
     return texto;
   }
 
-    getFechasNominaTexto(empleado: string): string {
+  getFechasNominaTexto(empleado: string): string {
     const empleadoInfo = this.getEmpleadoInfo(empleado);
     if (!empleadoInfo) return 'No definido';
     return empleadoInfo.fechasNomina.join(' y ');
@@ -405,7 +356,7 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
   }
 
   // ===== MÉTODOS DE TOOLTIP =====
-        getTooltipDia(fecha: Date | null, empleado: string): string {
+  getTooltipDia(fecha: Date | null, empleado: string): string {
     if (!fecha) return '';
 
     const tooltipParts: string[] = [`${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`];
@@ -460,81 +411,44 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
   }
 
   // ===== MÉTODOS DE GESTIÓN DE MODALES =====
-  private mostrarModal(tipo: ModalType, mensaje: string, callback?: () => void): void {
-    // Cerrar cualquier modal abierto primero
-    this.cerrarTodosLosModales();
-
-    // Actualizar datos del modal
-    this.modales[tipo].datos.mensaje = mensaje;
-
-    // Guardar callback si existe
-    if (callback) {
-      this.modalCallbacks[tipo] = callback;
-    }
-
-    // Mostrar modal
-    this.modales[tipo].mostrar = true;
-  }
-
-  // Método específico para mostrar mensajes de éxito
-  private mostrarExito(mensaje: string): void {
-    this.cerrarTodosLosModales();
-    this.modales[ModalType.SUCCESS].datos.mensaje = mensaje;
-    this.modales[ModalType.SUCCESS].mostrar = true;
-  }
-
-  // Método específico para mostrar errores
-  private mostrarError(mensaje: string): void {
-    this.cerrarTodosLosModales();
-    this.modales[ModalType.ERROR].datos.mensaje = mensaje;
-    this.modales[ModalType.ERROR].mostrar = true;
-  }
-
-  private cerrarTodosLosModales(): void {
-    Object.values(ModalType).forEach(tipo => {
-      this.modales[tipo].mostrar = false;
-    });
-    this.modalCallbacks = {};
-  }
-
-  private cerrarModal(tipo: ModalType): void {
-    this.modales[tipo].mostrar = false;
-    if (this.modalCallbacks[tipo]) {
-      delete this.modalCallbacks[tipo];
-    }
-  }
-
-  onModalConfirmar(tipo: string): void {
-    try {
-      const modalType = tipo as ModalType;
-      const callback = this.modalCallbacks[modalType];
-
-      // Cerrar modal primero
-      this.cerrarModal(modalType);
-
-      // Ejecutar callback si existe
-      if (callback) {
-        callback();
+  private mostrarModal(titulo: string, mensaje: string, tipo: 'confirmar' | 'guardar' = 'confirmar', callback?: () => void): void {
+    this.modalActual = {
+      mostrar: true,
+      datos: {
+        titulo,
+        mensaje,
+        tipo,
+        textoBotonConfirmar: tipo === 'guardar' ? 'Confirmar' : 'Aceptar',
+        textoBotonCancelar: tipo === 'guardar' ? 'Cancelar' : 'Cancelar'
       }
-    } catch (error) {
-      console.error('Error en onModalConfirmar:', error);
+    };
+    this.callbackConfirmacion = callback;
+  }
+
+  private mostrarExito(mensaje: string): void {
+    this.mostrarModal('Éxito', mensaje, 'confirmar');
+  }
+
+  private mostrarError(mensaje: string): void {
+    this.mostrarModal('Error', mensaje, 'confirmar');
+  }
+
+  onModalConfirmar(): void {
+    this.modalActual.mostrar = false;
+    if (this.callbackConfirmacion) {
+      this.callbackConfirmacion();
+      this.callbackConfirmacion = undefined;
     }
   }
 
-  onModalCancelar(tipo: string): void {
-    try {
-      this.cerrarModal(tipo as ModalType);
-    } catch (error) {
-      console.error('Error en onModalCancelar:', error);
-    }
+  onModalCancelar(): void {
+    this.modalActual.mostrar = false;
+    this.callbackConfirmacion = undefined;
   }
 
-  onModalCerrar(tipo: string): void {
-    try {
-      this.cerrarModal(tipo as ModalType);
-    } catch (error) {
-      console.error('Error en onModalCerrar:', error);
-    }
+  onModalCerrar(): void {
+    this.modalActual.mostrar = false;
+    this.callbackConfirmacion = undefined;
   }
 
   // ===== MÉTODOS DE NÓMINA =====
@@ -543,7 +457,7 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
       const { empleado } = this.nuevoRegistroNomina;
 
       if (!this.fechaRango.inicio || !this.fechaRango.fin || !empleado) {
-        this.mostrarModal(ModalType.VALIDATION, 'Por favor completa todos los campos requeridos');
+        this.mostrarError('Por favor completa todos los campos requeridos');
         return;
       }
 
@@ -552,13 +466,13 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // Mostrar confirmación
       const fechaInicio = this.fechaRango.inicio.toLocaleDateString('es-ES');
       const fechaFin = this.fechaRango.fin.toLocaleDateString('es-ES');
 
       this.mostrarModal(
-        ModalType.CONFIRMATION,
+        'Confirmar Nómina',
         `¿Registrar nómina para ${empleado} del ${fechaInicio} al ${fechaFin}?`,
+        'guardar',
         () => this.confirmarAgregarNomina()
       );
     } catch (error) {
@@ -571,7 +485,6 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
     try {
       const { empleado, monto, observaciones, pagoRealizado } = this.nuevoRegistroNomina;
 
-      // Crear registros para cada fecha en el rango
       const registros: Omit<RegistroNomina, 'id'>[] = [];
       const fechaInicio = new Date(this.fechaRango.inicio!);
       const fechaFin = new Date(this.fechaRango.fin!);
@@ -587,7 +500,6 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
         registros.push(registro);
       }
 
-      // Guardar todos los registros en Firebase
       const batch = [];
       for (const registro of registros) {
         batch.push(addDoc(collection(this.firestore, 'nomina'), registro));
@@ -595,22 +507,16 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
 
       await Promise.all(batch);
 
-      // Recargar datos y limpiar formulario
       await this.cargarRegistrosNomina();
       this.limpiarFormularioNomina();
       this.registroGuardado.emit();
 
-      // Mostrar mensaje de éxito
       const diasRegistrados = registros.length;
-      setTimeout(() => {
-        this.mostrarExito(`${diasRegistrados} registros de nómina agregados exitosamente para ${empleado}`);
-      }, 100);
+      this.mostrarExito(`${diasRegistrados} registros de nómina agregados exitosamente para ${empleado}`);
 
     } catch (error) {
       console.error('Error al agregar nómina:', error);
-      setTimeout(() => {
-        this.mostrarError(`Error al agregar los registros de nómina: ${error instanceof Error ? error.message : 'Error desconocido'}`);
-      }, 100);
+      this.mostrarError(`Error al agregar los registros de nómina: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
 
@@ -651,30 +557,25 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
 
     const fechaFormateada = fecha.toLocaleDateString('es-ES');
     this.mostrarModal(
-      ModalType.CONFIRMATION,
+      'Confirmar Trabajo',
       `¿Registrar día trabajado para ${empleado} el ${fechaFormateada}?`,
+      'guardar',
       () => this.confirmarRegistroTrabajo()
     );
   }
 
   private async confirmarRegistroTrabajo(): Promise<void> {
     try {
-      // Guardar registro directamente
       await addDoc(collection(this.firestore, 'empleados'), this.nuevoRegistroTrabajo);
 
-      // Recargar datos y limpiar formulario
       await this.cargarDiasTrabajados();
       this.limpiarFormularioTrabajo();
       this.registroGuardado.emit();
 
-      setTimeout(() => {
-        this.mostrarExito('Día trabajado registrado exitosamente');
-      }, 100);
+      this.mostrarExito('Día trabajado registrado exitosamente');
     } catch (error) {
       console.error('Error al registrar trabajo:', error);
-      setTimeout(() => {
-        this.mostrarError('Error al registrar el día trabajado');
-      }, 100);
+      this.mostrarError('Error al registrar el día trabajado');
     }
   }
 
@@ -693,14 +594,10 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
       await this.cargarDiasTrabajados();
       this.registroGuardado.emit();
 
-      setTimeout(() => {
-        this.mostrarExito('Día trabajado eliminado exitosamente');
-      }, 100);
+      this.mostrarExito('Día trabajado eliminado exitosamente');
     } catch (error) {
       console.error('Error al eliminar trabajo:', error);
-      setTimeout(() => {
-        this.mostrarError('Error al eliminar el día trabajado');
-      }, 100);
+      this.mostrarError('Error al eliminar el día trabajado');
     }
   }
 
@@ -712,5 +609,4 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
       pago: false
     };
   }
-
 }
