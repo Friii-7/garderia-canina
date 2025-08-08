@@ -382,9 +382,14 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
 
     if (this.mesInicio || this.mesFin) {
       registros = registros.filter(registro => {
-        const fechaRegistro = new Date(registro.fecha);
-        const fechaRegistroStr = fechaRegistro.getFullYear() + '-' +
-          String(fechaRegistro.getMonth() + 1).padStart(2, '0');
+        // Parse the date string directly to avoid timezone issues
+        // Assuming registro.fecha is in format "YYYY-MM-DD"
+        const fechaParts = registro.fecha.split('-');
+        if (fechaParts.length !== 3) return false;
+
+        const year = fechaParts[0];
+        const month = fechaParts[1]; // Already in MM format
+        const fechaRegistroStr = `${year}-${month}`;
 
         if (this.mesInicio && this.mesFin) {
           return fechaRegistroStr >= this.mesInicio && fechaRegistroStr <= this.mesFin;
