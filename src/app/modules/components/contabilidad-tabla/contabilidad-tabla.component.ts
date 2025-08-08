@@ -22,6 +22,10 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
   // Campo de búsqueda
   terminoBusqueda: string = '';
 
+  // Variables para filtro por fechas
+  mesInicio: string = '';
+  mesFin: string = '';
+
   // Variables para el modal de edición
   mostrarModalEdicion = false;
   registroEditando: ContabilidadRegistro | null = null;
@@ -145,6 +149,43 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
   datosModalErrorPDF: ConfirmacionModalData = {
     titulo: 'Error',
     mensaje: 'Error al generar el reporte PDF',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de confirmación de reporte mensual
+  mostrarModalReporteMensual = false;
+  datosModalReporteMensual: ConfirmacionModalData = {
+    titulo: 'Generar Reporte Mensual',
+    mensaje: '¿Estás seguro de que quieres generar el reporte mensual con los registros filtrados?',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Generar Reporte',
+    textoBotonCancelar: 'Cancelar'
+  };
+
+  // Modal de éxito reporte mensual
+  mostrarModalExitoReporteMensual = false;
+  datosModalExitoReporteMensual: ConfirmacionModalData = {
+    titulo: 'Éxito',
+    mensaje: 'Reporte mensual generado exitosamente',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error reporte mensual
+  mostrarModalErrorReporteMensual = false;
+  datosModalErrorReporteMensual: ConfirmacionModalData = {
+    titulo: 'Error',
+    mensaje: 'Error al generar el reporte mensual',
+    tipo: 'confirmar',
+    textoBotonConfirmar: 'Aceptar'
+  };
+
+  // Modal de error sin registros reporte mensual
+  mostrarModalErrorSinRegistrosReporteMensual = false;
+  datosModalErrorSinRegistrosReporteMensual: ConfirmacionModalData = {
+    titulo: 'Sin Registros',
+    mensaje: 'No hay registros en el período seleccionado para generar el reporte',
     tipo: 'confirmar',
     textoBotonConfirmar: 'Aceptar'
   };
@@ -335,6 +376,42 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
     );
   }
 
+  // Getter para filtrar registros por fecha
+  get registrosFiltradosPorFecha(): ContabilidadRegistro[] {
+    let registros = this.registrosFiltrados;
+
+    if (this.mesInicio || this.mesFin) {
+      registros = registros.filter(registro => {
+        const fechaRegistro = new Date(registro.fecha);
+        const fechaRegistroStr = fechaRegistro.getFullYear() + '-' +
+          String(fechaRegistro.getMonth() + 1).padStart(2, '0');
+
+        if (this.mesInicio && this.mesFin) {
+          return fechaRegistroStr >= this.mesInicio && fechaRegistroStr <= this.mesFin;
+        } else if (this.mesInicio) {
+          return fechaRegistroStr >= this.mesInicio;
+        } else if (this.mesFin) {
+          return fechaRegistroStr <= this.mesFin;
+        }
+        return true;
+      });
+    }
+
+    return registros;
+  }
+
+  // Método para aplicar filtro de fechas
+  aplicarFiltroFechas() {
+    // El filtro se aplica automáticamente a través del getter
+    console.log('Filtro de fechas aplicado:', { mesInicio: this.mesInicio, mesFin: this.mesFin });
+  }
+
+  // Método para limpiar filtro de fechas
+  limpiarFiltroFechas() {
+    this.mesInicio = '';
+    this.mesFin = '';
+  }
+
   // Función para mostrar el modal de confirmación de Excel
   mostrarConfirmacionExcel() {
     if (this.registros.length === 0) {
@@ -452,6 +529,301 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
   // Función para cancelar la generación de PDF
   cancelarGenerarPDF() {
     this.mostrarModalPDF = false;
+  }
+
+  // Función para mostrar el modal de confirmación de reporte mensual
+  mostrarConfirmacionReporteMensual() {
+    if (this.registrosFiltradosPorFecha.length === 0) {
+      this.mostrarModalErrorSinRegistrosReporteMensual = true;
+      return;
+    }
+
+    // Actualizar el mensaje del modal con información del período
+    const totalRegistros = this.registrosFiltradosPorFecha.length;
+    const totalIngresos = this.getTotalIngresosFiltrados();
+    const totalGastos = this.getTotalGastosFiltrados();
+    const balanceGeneral = this.getTotalGeneralFiltrados();
+    const periodo = this.obtenerPeriodoSeleccionado();
+
+    this.datosModalReporteMensual.mensaje = `¿Estás seguro de que quieres generar el reporte mensual?\n\n` +
+      `• Período: ${periodo}\n` +
+      `• Total de registros: ${totalRegistros}\n` +
+      `• Total de ingresos: $${totalIngresos.toFixed(2)}\n` +
+      `• Total de gastos: $${totalGastos.toFixed(2)}\n` +
+      `• Balance del período: $${balanceGeneral.toFixed(2)}`;
+
+    this.mostrarModalReporteMensual = true;
+  }
+
+  // Función para confirmar la generación de reporte mensual
+  confirmarGenerarReporteMensual() {
+    this.mostrarModalReporteMensual = false;
+    this.generarReporteMensual();
+  }
+
+  // Función para cancelar la generación de reporte mensual
+  cancelarGenerarReporteMensual() {
+    this.mostrarModalReporteMensual = false;
+  }
+
+  // Función para generar reporte mensual
+  async generarReporteMensual() {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 16;
+
+      // Cargar logo como base64
+      const logoUrl = 'public/assets/ui/logo.jpg';
+      let logoBase64 = '';
+      try {
+        const response = await fetch(logoUrl);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string);
+        });
+        reader.readAsDataURL(blob);
+        logoBase64 = await base64Promise;
+      } catch (e) {
+        logoBase64 = '';
+      }
+
+      // Encabezado con logo
+      doc.setFillColor(235, 235, 235);
+      doc.rect(0, 0, pageWidth, 40, 'F');
+      if (logoBase64) {
+        doc.addImage(logoBase64, 'JPEG', margin, 8, 24, 24);
+      } else {
+        doc.setFontSize(10);
+        doc.setTextColor(180, 0, 0);
+        doc.text('logo', margin + 8, 22, {align: 'center'});
+      }
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+      doc.text('GUARDERÍA CANINA', margin + 36, 22);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+      doc.text('Reporte Mensual de Contabilidad', margin + 36, 32);
+
+      // Fecha del reporte
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+      const reportDate = `Fecha del reporte: ${new Date().toLocaleDateString()}`;
+      const dateWidth = doc.getTextWidth(reportDate);
+      doc.text(reportDate, pageWidth - margin - dateWidth, 18);
+
+      // Información del período
+      let y = 48;
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+      doc.text('PERÍODO DEL REPORTE:', margin, y);
+      y += 8;
+
+      const periodo = this.obtenerPeriodoSeleccionado();
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      doc.text(periodo, margin, y);
+      y += 12;
+
+      // Estadísticas del período
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+      doc.text('RESUMEN DEL PERÍODO:', margin, y);
+      y += 8;
+
+      // Tarjeta de estadísticas
+      const statsWidth = 160;
+      const statsX = (pageWidth - statsWidth) / 2;
+      doc.setFillColor(242, 245, 247);
+      doc.roundedRect(statsX, y, statsWidth, 30, 8, 8, 'F');
+      doc.setDrawColor(220, 220, 220);
+      doc.roundedRect(statsX + 1, y + 1, statsWidth, 30, 8, 8);
+
+      const statsLeftX = statsX + 8;
+      let statsY = y + 12;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+
+      doc.text('Total de registros:', statsLeftX, statsY);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${this.registrosFiltradosPorFecha.length}`, statsLeftX + 50, statsY);
+
+      doc.setFont('helvetica', 'normal');
+      doc.text('Total ingresos:', statsLeftX + 80, statsY);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 128, 0);
+      doc.text(`$${this.getTotalIngresosFiltrados().toFixed(2)}`, statsLeftX + 130, statsY);
+
+      statsY += 8;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      doc.text('Total gastos:', statsLeftX, statsY);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(200, 0, 0);
+      doc.text(`$${this.getTotalGastosFiltrados().toFixed(2)}`, statsLeftX + 50, statsY);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      doc.text('Balance del período:', statsLeftX + 80, statsY);
+      doc.setFont('helvetica', 'bold');
+      const balancePeriodo = this.getTotalGeneralFiltrados();
+      doc.setTextColor(balancePeriodo >= 0 ? 0 : 200, 0, 0);
+      doc.text(`$${balancePeriodo.toFixed(2)}`, statsLeftX + 130, statsY);
+
+      // Tabla de registros del período
+      y += 50;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+      doc.text('REGISTROS DEL PERÍODO:', margin, y);
+      y += 8;
+
+      // Encabezados de la tabla
+      const tableHeaders = ['Fecha', 'Ingresos', 'Gastos', 'Total', 'Observaciones'];
+      const colWidths = [25, 25, 25, 25, 60];
+      const rowHeight = 10;
+      let tableX = margin;
+      let tableY = y;
+
+      // Fondo del encabezado
+      doc.setFillColor(200, 202, 205);
+      doc.rect(tableX, tableY, colWidths.reduce((a, b) => a + b, 0), rowHeight, 'F');
+
+      // Texto del encabezado
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 30, 30);
+      let currentX = tableX;
+      tableHeaders.forEach((header, index) => {
+        doc.text(header, currentX + 2, tableY + 6);
+        currentX += colWidths[index];
+      });
+
+      // Filas de datos
+      tableY += rowHeight;
+      let pageNumber = 1;
+      let registrosPorPagina = 0;
+      const maxRegistrosPorPagina = 15;
+
+      for (let i = 0; i < this.registrosFiltradosPorFecha.length; i++) {
+        const registro = this.registrosFiltradosPorFecha[i];
+
+        // Verificar si necesitamos nueva página
+        if (registrosPorPagina >= maxRegistrosPorPagina) {
+          doc.addPage();
+          pageNumber++;
+          tableY = 20;
+          registrosPorPagina = 0;
+
+          // Repetir encabezado en nueva página
+          doc.setFillColor(200, 202, 205);
+          doc.rect(tableX, tableY, colWidths.reduce((a, b) => a + b, 0), rowHeight, 'F');
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(30, 30, 30);
+          currentX = tableX;
+          tableHeaders.forEach((header, index) => {
+            doc.text(header, currentX + 2, tableY + 6);
+            currentX += colWidths[index];
+          });
+          tableY += rowHeight;
+        }
+
+        // Fondo alterno para las filas
+        if (registrosPorPagina % 2 === 0) {
+          doc.setFillColor(245, 250, 252);
+          doc.rect(tableX, tableY, colWidths.reduce((a, b) => a + b, 0), rowHeight, 'F');
+        }
+
+        // Datos de la fila
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+
+        currentX = tableX;
+        doc.setTextColor(60, 60, 60);
+        doc.text(registro.fecha, currentX + 2, tableY + 6);
+        currentX += colWidths[0];
+
+        doc.setTextColor(0, 128, 0);
+        doc.text(`$${(registro.ingreso || 0).toFixed(2)}`, currentX + 2, tableY + 6);
+        currentX += colWidths[1];
+
+        doc.setTextColor(200, 0, 0);
+        doc.text(`$${(registro.gastos || 0).toFixed(2)}`, currentX + 2, tableY + 6);
+        currentX += colWidths[2];
+
+        const total = (registro.total || 0);
+        doc.setTextColor(total >= 0 ? 0 : 200, 0, 0);
+        doc.text(`$${total.toFixed(2)}`, currentX + 2, tableY + 6);
+        currentX += colWidths[3];
+
+        doc.setTextColor(60, 60, 60);
+        const observaciones = registro.observaciones || '';
+        doc.text(observaciones.substring(0, 35), currentX + 2, tableY + 6);
+
+        tableY += rowHeight;
+        registrosPorPagina++;
+      }
+
+      // Bordes de la tabla
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(tableX, y, colWidths.reduce((a, b) => a + b, 0), tableY - y);
+
+      // Pie de página
+      let footerY = pageHeight - 20;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(120, 120, 120);
+      doc.text(`Página ${pageNumber}`, pageWidth - margin - 30, footerY);
+      doc.text(`Reporte mensual generado el ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()}`, margin, footerY);
+
+      // Guardar el archivo
+      const fechaActual = new Date().toISOString().split('T')[0];
+      const nombreArchivo = `reporte_mensual_contabilidad_${fechaActual}.pdf`;
+      doc.save(nombreArchivo);
+
+      this.mostrarModalExitoReporteMensual = true;
+    } catch (error) {
+      console.error('Error al generar reporte mensual:', error);
+      this.mostrarModalErrorReporteMensual = true;
+    }
+  }
+
+  // Métodos auxiliares para cálculos filtrados
+  getTotalIngresosFiltrados(): number {
+    return this.registrosFiltradosPorFecha.reduce((total, registro) => total + registro.ingreso, 0);
+  }
+
+  getTotalGastosFiltrados(): number {
+    return this.registrosFiltradosPorFecha.reduce((total, registro) => total + registro.gastos, 0);
+  }
+
+  getTotalGeneralFiltrados(): number {
+    return this.getTotalIngresosFiltrados() - this.getTotalGastosFiltrados();
+  }
+
+  obtenerPeriodoSeleccionado(): string {
+    if (this.mesInicio && this.mesFin) {
+      const inicio = new Date(this.mesInicio + '-01');
+      const fin = new Date(this.mesFin + '-01');
+      return `${inicio.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })} - ${fin.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
+    } else if (this.mesInicio) {
+      const inicio = new Date(this.mesInicio + '-01');
+      return `Desde ${inicio.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
+    } else if (this.mesFin) {
+      const fin = new Date(this.mesFin + '-01');
+      return `Hasta ${fin.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
+    }
+    return 'Todos los registros';
   }
 
   // Función para generar PDF general con todos los registros de contabilidad
@@ -715,5 +1087,21 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
 
   cerrarModalErrorPDF() {
     this.mostrarModalErrorPDF = false;
+  }
+
+  cerrarModalReporteMensual() {
+    this.mostrarModalReporteMensual = false;
+  }
+
+  cerrarModalExitoReporteMensual() {
+    this.mostrarModalExitoReporteMensual = false;
+  }
+
+  cerrarModalErrorReporteMensual() {
+    this.mostrarModalErrorReporteMensual = false;
+  }
+
+  cerrarModalErrorSinRegistrosReporteMensual() {
+    this.mostrarModalErrorSinRegistrosReporteMensual = false;
   }
 }
