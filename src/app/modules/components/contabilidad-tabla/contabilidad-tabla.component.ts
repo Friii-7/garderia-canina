@@ -382,23 +382,42 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
 
     if (this.mesInicio || this.mesFin) {
       registros = registros.filter(registro => {
-        // Parse the date string directly to avoid timezone issues
-        // Assuming registro.fecha is in format "YYYY-MM-DD"
-        const fechaParts = registro.fecha.split('-');
-        if (fechaParts.length !== 3) return false;
+        try {
+          // Parsear la fecha del registro (formato "YYYY-MM-DD")
+          const fechaRegistro = new Date(registro.fecha + 'T00:00:00');
+          if (isNaN(fechaRegistro.getTime())) return false;
 
-        const year = fechaParts[0];
-        const month = fechaParts[1]; // Already in MM format
-        const fechaRegistroStr = `${year}-${month}`;
+          // Crear fechas de inicio y fin del mes para comparación
+          let fechaInicio: Date | null = null;
+          let fechaFin: Date | null = null;
 
-        if (this.mesInicio && this.mesFin) {
-          return fechaRegistroStr >= this.mesInicio && fechaRegistroStr <= this.mesFin;
-        } else if (this.mesInicio) {
-          return fechaRegistroStr >= this.mesInicio;
-        } else if (this.mesFin) {
-          return fechaRegistroStr <= this.mesFin;
+          if (this.mesInicio) {
+            fechaInicio = new Date(this.mesInicio + '-01T00:00:00');
+          }
+
+          if (this.mesFin) {
+            // Obtener el último día del mes de fin
+            const fechaFinMes = new Date(this.mesFin + '-01T00:00:00');
+            fechaFinMes.setMonth(fechaFinMes.getMonth() + 1);
+            fechaFinMes.setDate(0); // Último día del mes
+            fechaFinMes.setHours(23, 59, 59, 999); // Fin del día
+            fechaFin = fechaFinMes;
+          }
+
+          // Aplicar filtros
+          if (fechaInicio && fechaFin) {
+            return fechaRegistro >= fechaInicio && fechaRegistro <= fechaFin;
+          } else if (fechaInicio) {
+            return fechaRegistro >= fechaInicio;
+          } else if (fechaFin) {
+            return fechaRegistro <= fechaFin;
+          }
+
+          return true;
+        } catch (error) {
+          console.error('Error al procesar fecha:', registro.fecha, error);
+          return false;
         }
-        return true;
       });
     }
 
@@ -408,14 +427,29 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
   // Método para aplicar filtro de fechas
   aplicarFiltroFechas() {
     // El filtro se aplica automáticamente a través del getter
-    console.log('Filtro de fechas aplicado:', { mesInicio: this.mesInicio, mesFin: this.mesFin });
+    console.log('Filtro de fechas aplicado:', {
+      mesInicio: this.mesInicio,
+      mesFin: this.mesFin,
+      registrosFiltrados: this.registrosFiltradosPorFecha.length,
+      totalRegistros: this.registros.length
+    });
+
+    // Validar que las fechas sean coherentes
+    if (this.mesInicio && this.mesFin && this.mesInicio > this.mesFin) {
+      console.warn('La fecha de inicio es posterior a la fecha de fin');
+      // Opcional: mostrar un mensaje de advertencia al usuario
+    }
   }
 
   // Método para limpiar filtro de fechas
   limpiarFiltroFechas() {
     this.mesInicio = '';
     this.mesFin = '';
+    console.log('Filtro de fechas limpiado');
   }
+
+  // Método de depuración para verificar fechas
+
 
   // Función para mostrar el modal de confirmación de Excel
   mostrarConfirmacionExcel() {
@@ -818,14 +852,20 @@ export class ContabilidadTablaComponent implements OnInit, AfterViewInit {
 
   obtenerPeriodoSeleccionado(): string {
     if (this.mesInicio && this.mesFin) {
-      const inicio = new Date(this.mesInicio + '-01');
-      const fin = new Date(this.mesFin + '-01');
+      const inicio = new Date(this.mesInicio + '-01T00:00:00');
+      const fin = new Date(this.mesFin + '-01T00:00:00');
+
+      // Si es el mismo mes, mostrar solo un mes
+      if (inicio.getFullYear() === fin.getFullYear() && inicio.getMonth() === fin.getMonth()) {
+        return inicio.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+      }
+
       return `${inicio.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })} - ${fin.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
     } else if (this.mesInicio) {
-      const inicio = new Date(this.mesInicio + '-01');
+      const inicio = new Date(this.mesInicio + '-01T00:00:00');
       return `Desde ${inicio.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
     } else if (this.mesFin) {
-      const fin = new Date(this.mesFin + '-01');
+      const fin = new Date(this.mesFin + '-01T00:00:00');
       return `Hasta ${fin.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
     }
     return 'Todos los registros';
