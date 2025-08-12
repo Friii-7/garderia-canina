@@ -118,6 +118,50 @@
     </div>
   </div>
 
+  <!-- Resumen del Reporte Mensual -->
+  <div class="row mb-4" *ngIf="mesInicio || mesFin">
+    <div class="col-md-12">
+      <div class="card resumen-reporte-mensual">
+        <div class="card-header bg-info text-white">
+          <h6 class="mb-0">
+            <i class="bi bi-calculator me-2"></i>
+            Resumen del Reporte Mensual - {{ obtenerPeriodoSeleccionado() }}
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3">
+              <div class="text-center">
+                <h6 class="text-muted">Total Registros</h6>
+                <p class="fs-4 fw-bold text-primary">{{ registrosFiltradosPorFecha.length }}</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-center">
+                <h6 class="text-muted">Total Ingresos</h6>
+                <p class="fs-4 fw-bold text-success">${{ getTotalIngresosFiltrados() | number:'1.2-2' }}</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-center">
+                <h6 class="text-muted">Total Gastos</h6>
+                <p class="fs-4 fw-bold text-danger">${{ getTotalGastosFiltrados() | number:'1.2-2' }}</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-center">
+                <h6 class="text-muted">Balance del Período</h6>
+                <p class="fs-4 fw-bold" [class.text-success]="getTotalGeneralFiltrados() >= 0" [class.text-danger]="getTotalGeneralFiltrados() < 0">
+                  ${{ getTotalGeneralFiltrados() | number:'1.2-2' }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row mb-4">
     <div class="col-md-4">
       <div class="card text-center">

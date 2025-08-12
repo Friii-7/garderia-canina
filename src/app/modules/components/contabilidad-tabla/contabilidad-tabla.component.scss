@@ -44,4 +44,46 @@
   .text-muted {
     font-size: 0.875rem;
   }
+
+  // Estilos para el resumen del reporte mensual
+  .resumen-reporte-mensual {
+    .card-header {
+      background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+      border: none;
+
+      h6 {
+        color: white;
+        font-weight: 600;
+      }
+    }
+
+    .card-body {
+      background-color: #f8f9fa;
+    }
+
+    .text-center {
+      h6 {
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        margin-bottom: 0;
+        font-weight: 700;
+      }
+    }
+
+    .text-primary {
+      color: #0d6efd !important;
+    }
+
+    .text-success {
+      color: #198754 !important;
+    }
+
+    .text-danger {
+      color: #dc3545 !important;
+    }
+  }
 }
