@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Output, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Firestore, collection, addDoc, query, where, getDocs, deleteDoc } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc, doc } from '@angular/fire/firestore';
 import { ConfirmacionModalComponent } from '../confirmacion-modal/confirmacion-modal.component';
 import { Subject } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -16,6 +16,8 @@ export interface EmpleadoRegistro {
   empleado: string;
   turno: 'Día' | 'Noche';
   pago: boolean;
+  monto?: number;
+  observaciones?: string;
 }
 
 export interface RegistroNomina {
@@ -34,6 +36,7 @@ export interface EmpleadoInfo {
   turnoPredeterminado?: 'Día' | 'Noche';
   diasFestivos?: boolean;
   soloNomina?: boolean;
+  salarioPorDia?: number;
 }
 
 export interface ModalData {
@@ -74,19 +77,22 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
       nombre: 'Farzin',
       diasLaborales: [0, 1, 2, 3, 4, 5, 6],
       fechasNomina: [1, 15],
-      turnoPredeterminado: 'Noche'
+      turnoPredeterminado: 'Noche',
+      salarioPorDia: 300
     },
     {
       nombre: 'Saul',
       diasLaborales: [1, 2, 3, 4, 5, 6],
       fechasNomina: [6, 21],
-      soloNomina: true
+      soloNomina: true,
+      salarioPorDia: 250
     },
     {
       nombre: 'Evelyn',
       diasLaborales: [0, 6],
       fechasNomina: [1, 15],
-      diasFestivos: true
+      diasFestivos: true,
+      salarioPorDia: 280
     }
   ];
 
@@ -280,6 +286,80 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
   isNominaPagada(fecha: Date, empleado: string): boolean {
     const nominaRecibida = this.isNominaRecibida(fecha, empleado);
     return nominaRecibida?.pagoRealizado || false;
+  }
+
+  // ===== NUEVOS MÉTODOS PARA PAGOS =====
+  async marcarPagoDia(fecha: Date, empleado: string): Promise<void> {
+    const diaTrabajado = this.isDiaTrabajado(fecha, empleado);
+    if (!diaTrabajado) {
+      this.mostrarError('No hay registro de trabajo para este día');
+      return;
+    }
+
+    if (diaTrabajado.pago) {
+      // Desmarcar pago
+      this.mostrarModal(
+        'Desmarcar Pago',
+        `¿Desmarcar pago para ${empleado} el ${fecha.toLocaleDateString('es-ES')}?`,
+        'guardar',
+        () => this.confirmarDesmarcarPago(diaTrabajado)
+      );
+    } else {
+      // Marcar pago
+      this.mostrarModal(
+        'Marcar Pago',
+        `¿Marcar pago para ${empleado} el ${fecha.toLocaleDateString('es-ES')}?`,
+        'guardar',
+        () => this.confirmarMarcarPago(diaTrabajado)
+      );
+    }
+  }
+
+  private async confirmarMarcarPago(registro: EmpleadoRegistro): Promise<void> {
+    try {
+      if (!registro.id) {
+        this.mostrarError('Error: ID de registro no encontrado');
+        return;
+      }
+
+      const empleadoInfo = this.getEmpleadoInfo(registro.empleado);
+      const monto = empleadoInfo?.salarioPorDia || 0;
+
+      await updateDoc(doc(this.firestore, 'empleados', registro.id), {
+        pago: true,
+        monto: monto,
+        observaciones: `Pago marcado el ${new Date().toLocaleDateString('es-ES')}`
+      });
+
+      await this.cargarDiasTrabajados();
+      this.registroGuardado.emit();
+      this.mostrarExito('Pago marcado exitosamente');
+    } catch (error) {
+      console.error('Error al marcar pago:', error);
+      this.mostrarError('Error al marcar el pago');
+    }
+  }
+
+  private async confirmarDesmarcarPago(registro: EmpleadoRegistro): Promise<void> {
+    try {
+      if (!registro.id) {
+        this.mostrarError('Error: ID de registro no encontrado');
+        return;
+      }
+
+      await updateDoc(doc(this.firestore, 'empleados', registro.id), {
+        pago: false,
+        monto: 0,
+        observaciones: ''
+      });
+
+      await this.cargarDiasTrabajados();
+      this.registroGuardado.emit();
+      this.mostrarExito('Pago desmarcado exitosamente');
+    } catch (error) {
+      console.error('Error al desmarcar pago:', error);
+      this.mostrarError('Error al desmarcar el pago');
+    }
   }
 
   // ===== MÉTODOS DE CLASES CSS =====
@@ -478,10 +558,31 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
     const diaExistente = this.isDiaTrabajado(fecha, empleado);
 
     if (diaExistente) {
-      this.eliminarDiaTrabajado(fecha, empleado);
+      // Si ya existe, permitir marcar/desmarcar pago o eliminar
+      if (diaExistente.pago) {
+        this.marcarPagoDia(fecha, empleado);
+      } else {
+        this.mostrarOpcionesDiaTrabajado(fecha, empleado, diaExistente);
+      }
     } else {
       this.crearNuevoRegistroTrabajo(fecha, empleado);
     }
+  }
+
+  private mostrarOpcionesDiaTrabajado(fecha: Date, empleado: string, registro: EmpleadoRegistro): void {
+    const fechaFormateada = fecha.toLocaleDateString('es-ES');
+    this.mostrarModal(
+      'Opciones del Día Trabajado',
+      `¿Qué deseas hacer con el día trabajado de ${empleado} el ${fechaFormateada}?`,
+      'confirmar',
+      () => this.mostrarOpcionesAvanzadas(fecha, empleado, registro)
+    );
+  }
+
+  private mostrarOpcionesAvanzadas(fecha: Date, empleado: string, registro: EmpleadoRegistro): void {
+    // Aquí podrías implementar un modal con múltiples opciones
+    // Por ahora, simplemente marcar como pagado
+    this.marcarPagoDia(fecha, empleado);
   }
 
   private crearNuevoRegistroTrabajo(fecha: Date, empleado: string): void {
@@ -545,5 +646,102 @@ export class EmpleadosFormularioComponent implements OnInit, OnDestroy {
       turno: 'Día',
       pago: false
     };
+  }
+
+  // ===== MÉTODOS DE RESUMEN Y ESTADÍSTICAS =====
+  getResumenEmpleado(empleado: string): { diasTrabajados: number; diasPagados: number; totalPagos: number } {
+    const diasTrabajados = this.diasTrabajados[empleado] || [];
+    const diasPagados = diasTrabajados.filter(dia => dia.pago).length;
+    const totalPagos = diasPagados * (this.getEmpleadoInfo(empleado)?.salarioPorDia || 0);
+
+    return {
+      diasTrabajados: diasTrabajados.length,
+      diasPagados,
+      totalPagos
+    };
+  }
+
+  getDiasTrabajadosMes(empleado: string): number {
+    if (!this.diasTrabajados[empleado]) return 0;
+
+    return this.diasTrabajados[empleado].filter(dia => {
+      const fecha = new Date(dia.fecha);
+      return fecha.getMonth() === this.currentMonth && fecha.getFullYear() === this.currentYear;
+    }).length;
+  }
+
+  getDiasPagadosMes(empleado: string): number {
+    if (!this.diasTrabajados[empleado]) return 0;
+
+    return this.diasTrabajados[empleado].filter(dia => {
+      const fecha = new Date(dia.fecha);
+      return fecha.getMonth() === this.currentMonth &&
+             fecha.getFullYear() === this.currentYear &&
+             dia.pago;
+    }).length;
+  }
+
+  getTotalPagosMes(empleado: string): number {
+    const diasPagados = this.getDiasPagadosMes(empleado);
+    const salarioPorDia = this.getEmpleadoInfo(empleado)?.salarioPorDia || 0;
+    return diasPagados * salarioPorDia;
+  }
+
+  // ===== MÉTODOS DE PAGOS MASIVOS =====
+  async pagarDiasPendientes(empleado: string): Promise<void> {
+    if (this.isSoloNomina(empleado)) {
+      this.mostrarError('Los empleados que solo registran nómina no tienen días trabajados para pagar');
+      return;
+    }
+
+    const diasTrabajados = this.diasTrabajados[empleado] || [];
+    const diasPendientes = diasTrabajados.filter(dia => !dia.pago);
+
+    if (diasPendientes.length === 0) {
+      this.mostrarExito('No hay días pendientes de pago para este empleado');
+      return;
+    }
+
+    const empleadoInfo = this.getEmpleadoInfo(empleado);
+    const totalPagar = diasPendientes.length * (empleadoInfo?.salarioPorDia || 0);
+
+    this.mostrarModal(
+      'Pagar Días Pendientes',
+      `¿Pagar ${diasPendientes.length} días pendientes de ${empleado} por un total de $${totalPagar}?`,
+      'guardar',
+      () => this.confirmarPagoMasivo(diasPendientes)
+    );
+  }
+
+  private async confirmarPagoMasivo(diasPendientes: EmpleadoRegistro[]): Promise<void> {
+    try {
+      const empleadoInfo = this.getEmpleadoInfo(diasPendientes[0].empleado);
+      const monto = empleadoInfo?.salarioPorDia || 0;
+      const fechaPago = new Date().toLocaleDateString('es-ES');
+
+      const actualizaciones = diasPendientes.map(registro => {
+        if (!registro.id) return Promise.resolve();
+
+        return updateDoc(doc(this.firestore, 'empleados', registro.id), {
+          pago: true,
+          monto: monto,
+          observaciones: `Pago masivo realizado el ${fechaPago}`
+        });
+      });
+
+      await Promise.all(actualizaciones);
+      await this.cargarDiasTrabajados();
+      this.registroGuardado.emit();
+
+      this.mostrarExito(`${diasPendientes.length} días marcados como pagados exitosamente`);
+    } catch (error) {
+      console.error('Error al realizar pago masivo:', error);
+      this.mostrarError('Error al realizar el pago masivo');
+    }
+  }
+
+  getDiasPendientesPago(empleado: string): number {
+    if (!this.diasTrabajados[empleado]) return 0;
+    return this.diasTrabajados[empleado].filter(dia => !dia.pago).length;
   }
 }

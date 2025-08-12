@@ -124,6 +124,31 @@
                     <span *ngIf="getTurnoPredeterminado(empleado)"> | Turno: {{ getTurnoPredeterminado(empleado) }}</span>
                   </span>
                 </small>
+                <!-- Resumen del mes -->
+                <div class="resumen-mes mt-2" *ngIf="!isSoloNomina(empleado)">
+                  <small class="text-white">
+                    <span class="badge bg-primary me-2">
+                      <i class="bi bi-calendar-check me-1"></i>
+                      {{ getDiasTrabajadosMes(empleado) }} días
+                    </span>
+                    <span class="badge bg-success me-2">
+                      <i class="bi bi-cash me-1"></i>
+                      {{ getDiasPagadosMes(empleado) }} pagados
+                    </span>
+                    <span class="badge bg-warning me-2">
+                      <i class="bi bi-currency-dollar me-1"></i>
+                      ${{ getTotalPagosMes(empleado) | number:'1.0-0' }}
+                    </span>
+                    <button
+                      *ngIf="getDiasPendientesPago(empleado) > 0"
+                      class="btn btn-sm btn-outline-light"
+                      (click)="pagarDiasPendientes(empleado)"
+                      title="Pagar días pendientes">
+                      <i class="bi bi-cash-stack me-1"></i>
+                      Pagar {{ getDiasPendientesPago(empleado) }}
+                    </button>
+                  </small>
+                </div>
               </div>
             </div>
             <div class="card-body">
@@ -155,21 +180,21 @@
                     <div class="numero-dia" *ngIf="fecha">{{ fecha.getDate() }}</div>
                     <div class="info-dia" *ngIf="fecha">
                       <!-- Para empleados que solo registran nómina (Saul) -->
-                      <small class="nomina-recibida" *ngIf="isSoloNomina(empleado) && isNominaPagada(fecha, empleado)">✓</small>
+                      <small class="nomina-recibida" *ngIf="isSoloNomina(empleado) && isNominaPagada(fecha, empleado)">💰</small>
                       <small class="nomina-pendiente" *ngIf="isSoloNomina(empleado) && isFechaNomina(fecha, empleado) && !isNominaPagada(fecha, empleado)">$</small>
 
                       <!-- Para empleados que trabajan (Farzin y Evelyn) -->
                       <small class="turno" *ngIf="!isSoloNomina(empleado) && isDiaTrabajado(fecha, empleado)">
-                        {{ isDiaTrabajado(fecha, empleado)?.turno }}
+                        {{ isDiaTrabajado(fecha, empleado)?.turno === 'Noche' ? '🌙' : '☀️' }}
                       </small>
-                      <small class="pago" *ngIf="!isSoloNomina(empleado) && isDiaTrabajado(fecha, empleado)?.pago">✓</small>
-                      <small class="nomina" *ngIf="!isSoloNomina(empleado) && isFechaNomina(fecha, empleado)">$</small>
+                      <small class="pago" *ngIf="!isSoloNomina(empleado) && isDiaTrabajado(fecha, empleado)?.pago">💵</small>
+                      <small class="nomina" *ngIf="!isSoloNomina(empleado) && isFechaNomina(fecha, empleado)">📋</small>
 
                       <!-- Nómina pagada para todos los empleados -->
                       <small class="nomina-recibida" *ngIf="!isSoloNomina(empleado) && isNominaPagada(fecha, empleado)">💰</small>
 
                       <!-- Nómina registrada pero pendiente de pago -->
-                      <small class="nomina-pendiente" *ngIf="!isSoloNomina(empleado) && isNominaRecibida(fecha, empleado) && !isNominaPagada(fecha, empleado)">$</small>
+                      <small class="nomina-pendiente" *ngIf="!isSoloNomina(empleado) && isNominaRecibida(fecha, empleado) && !isNominaPagada(fecha, empleado)">📋</small>
                     </div>
                   </div>
                 </div>
@@ -181,88 +206,7 @@
     </div>
   </div>
 
-  <!-- Leyenda -->
-  <div class="card mt-4 leyenda-section">
-    <div class="card-header">
-      <h5>Leyenda</h5>
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-3">
-          <div class="leyenda-item">
-            <span class="indicador dia-trabajado"></span>
-            <span>Día trabajado (Turno día)</span>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="leyenda-item">
-            <span class="indicador dia-trabajado turno-noche"></span>
-            <span>Día trabajado (Turno noche)</span>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="leyenda-item">
-            <span class="indicador dia-laboral"></span>
-            <span>Día laboral (no registrado)</span>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="leyenda-item">
-            <span class="indicador fecha-nomina"></span>
-            <span>Fecha de nómina</span>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="leyenda-item">
-            <span class="indicador dia-festivo"></span>
-            <span>Día festivo</span>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="leyenda-item">
-            <span class="indicador nomina-recibida"></span>
-            <span>Nómina recibida (Saul)</span>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="leyenda-item">
-            <span>💰</span>
-            <span>Nómina pagada (Farzin/Evelyn)</span>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="leyenda-item">
-            <span>$</span>
-            <span>Nómina registrada (pendiente)</span>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="leyenda-item">
-            <span class="indicador fecha-nomina-pendiente"></span>
-            <span>Fecha nómina (pendiente)</span>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="leyenda-item">
-            <span class="indicador pago-realizado"></span>
-            <span>Pago realizado</span>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="leyenda-item">
-            <span>👆</span>
-            <span>Día clickeable (registrar trabajo)</span>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="leyenda-item">
-            <span>✏️</span>
-            <span>Día trabajado (click para eliminar)</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+
 </div>
 
 <!-- Modal unificado -->

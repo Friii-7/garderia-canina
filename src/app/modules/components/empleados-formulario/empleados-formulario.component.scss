@@ -193,6 +193,36 @@
               font-size: 0.75rem;
               opacity: 0.9;
             }
+
+            .resumen-mes {
+              .badge {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.5rem;
+                font-weight: 500;
+
+                i {
+                  font-size: 0.6rem;
+                }
+              }
+
+              .btn {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.5rem;
+                font-weight: 500;
+                border-width: 1px;
+
+                &:hover {
+                  background-color: rgba(255, 255, 255, 0.2);
+                  border-color: white;
+                }
+
+                i {
+                  font-size: 0.6rem;
+                }
+              }
+            }
           }
         }
 
@@ -266,7 +296,7 @@
               gap: 1px;
 
               .turno {
-                font-size: 0.6em;
+                font-size: 0.8em;
                 padding: 1px 3px;
                 border-radius: 2px;
                 background-color: #007bff;
@@ -276,25 +306,25 @@
               .pago {
                 color: #28a745;
                 font-weight: bold;
-                font-size: 0.7em;
+                font-size: 0.8em;
               }
 
               .nomina {
                 color: #ffc107;
                 font-weight: bold;
-                font-size: 0.7em;
+                font-size: 0.8em;
               }
 
               .nomina-recibida {
                 color: #28a745;
                 font-weight: bold;
-                font-size: 0.7em;
+                font-size: 0.8em;
               }
 
               .nomina-pendiente {
-                color: #ff0707;
+                color: #dc3545;
                 font-weight: bold;
-                font-size: 0.7em;
+                font-size: 0.8em;
               }
             }
 
@@ -332,17 +362,15 @@
             }
 
             &.pago-realizado {
-              background-color: #d1ecf1;
-              border-color: #bee5eb;
+              background-color: #d4edda;
+              border-color: #c3e6cb;
               position: relative;
 
               &::after {
-                content: '✓';
+                content: '💵';
                 position: absolute;
                 top: 2px;
                 right: 2px;
-                color: #28a745;
-                font-weight: bold;
                 font-size: 0.8em;
               }
             }
@@ -423,24 +451,11 @@
                 transform: scale(1.02);
               }
 
-              &::before {
-                content: '👆';
-                position: absolute;
-                top: 2px;
-                left: 2px;
-                font-size: 0.6em;
-                opacity: 0.7;
-              }
-
               &.dia-trabajado {
                 &:hover {
                   background-color: #c8e6c9;
                   border-color: #4caf50;
                   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-                }
-
-                &::before {
-                  content: '✏️';
                 }
               }
             }
@@ -450,10 +465,7 @@
     }
   }
 
-  // Hide legend section
-  .leyenda-section {
-    display: none;
-  }
+
 
   // Responsive design
   @media (max-width: 768px) {
