@@ -219,6 +219,7 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
   servicioBanoEdit: boolean = false;
   gastosEdit: number = 0;
   metodoPagoEdit: string = '';
+  pendientePagoEdit: boolean = false;
 
   // Valores calculados para edición
   ingresosEdit: number = 0;
@@ -258,6 +259,7 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
     this.servicioBanoEdit = registro.bano;
     this.gastosEdit = registro.gastos;
     this.metodoPagoEdit = registro.metodoPago;
+    this.pendientePagoEdit = registro.pendientePago || false;
 
     this.actualizarIngresosEdit();
     this.mostrarModalEdicion = true;
@@ -297,7 +299,8 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
           ingresos: this.ingresosEdit,
           gastos: this.gastosEdit,
           total: this.totalEdit,
-          metodoPago: this.metodoPagoEdit
+          metodoPago: this.metodoPagoEdit,
+          pendientePago: this.pendientePagoEdit
         };
 
         const docRef = doc(this.firestore, 'registros', this.registroEditando.id);
@@ -332,6 +335,7 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
     this.ingresosEdit = 0;
     this.totalEdit = 0;
     this.metodoPagoEdit = '';
+    this.pendientePagoEdit = false;
   }
 
   async eliminarRegistro(registro: any) {
@@ -540,6 +544,14 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(60, 60, 60);
     doc.text(reg.metodoPago, margin + 45, totalsY);
+
+    totalsY += 6;
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 30, 30);
+    doc.text('Estado de Pago:', margin, totalsY);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    doc.text(reg.pendientePago ? 'Pendiente' : 'Pagado', margin + 45, totalsY);
     // Totales a la derecha
     let totX = pageWidth - margin - 60;
     let totY = totalsY;
@@ -626,6 +638,7 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
         'Gastos (COP)': registro.gastos,
         'Total (COP)': registro.total,
         'Método de Pago': registro.metodoPago,
+        'Estado de Pago': registro.pendientePago ? 'Pendiente' : 'Pagado',
         'Fecha de Creación': registro.fechaCreacion ? registro.fechaCreacion.toLocaleDateString() : ''
       }));
 
@@ -641,6 +654,7 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
         'Gastos (COP)': this.getTotalGastos(),
         'Total (COP)': this.getTotalGeneral(),
         'Método de Pago': '',
+        'Estado de Pago': '',
         'Fecha de Creación': ''
       };
       datosExcel.push(totales);
@@ -661,6 +675,7 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
         { wch: 15 }, // Gastos
         { wch: 15 }, // Total
         { wch: 20 }, // Método de Pago
+        { wch: 15 }, // Estado de Pago
         { wch: 20 }  // Fecha de Creación
       ];
       worksheet['!cols'] = columnWidths;
@@ -698,9 +713,9 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
     if (!this.terminoBusqueda.trim()) {
       return this.registros;
     }
-    
+
     const termino = this.terminoBusqueda.toLowerCase().trim();
-    return this.registros.filter(registro => 
+    return this.registros.filter(registro =>
       registro.nombre.toLowerCase().includes(termino) ||
       registro.fecha.toLowerCase().includes(termino) ||
       registro.tamano.toLowerCase().includes(termino) ||
@@ -708,7 +723,8 @@ export class TablaRegistrosComponent implements OnInit, AfterViewInit {
       (registro.ingresos && registro.ingresos.toString().includes(termino)) ||
       (registro.gastos && registro.gastos.toString().includes(termino)) ||
       (registro.total && registro.total.toString().includes(termino)) ||
-      (registro.dias && registro.dias.toString().includes(termino))
+      (registro.dias && registro.dias.toString().includes(termino)) ||
+      (registro.pendientePago ? 'pendiente' : 'pagado').includes(termino)
     );
   }
 

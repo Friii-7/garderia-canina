@@ -32,15 +32,15 @@
           <span class="input-group-text">
             <i class="bi bi-search"></i>
           </span>
-          <input 
-            type="text" 
-            class="form-control" 
-            placeholder="Buscar por nombre, fecha, tamaño, método de pago, ingresos, gastos, total o días..." 
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Buscar por nombre, fecha, tamaño, método de pago, estado de pago, ingresos, gastos, total o días..."
             [(ngModel)]="_terminoBusqueda"
             name="terminoBusqueda">
-          <button 
-            class="btn btn-outline-secondary" 
-            type="button" 
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
             (click)="_terminoBusqueda = ''"
             *ngIf="terminoBusqueda">
             <i class="bi bi-x"></i>
@@ -68,6 +68,7 @@
             <th>Gastos</th>
             <th>Total</th>
             <th>Método de pago</th>
+            <th>Pendiente pago</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -83,6 +84,10 @@
             <td>${{ (registro.gastos || 0).toLocaleString() }}</td>
             <td>${{ (registro.total || 0).toLocaleString() }}</td>
             <td>{{ registro.metodoPago }}</td>
+            <td>
+              <span *ngIf="registro.pendientePago" class="badge bg-warning text-dark">Pendiente</span>
+              <span *ngIf="!registro.pendientePago" class="badge bg-success">Pagado</span>
+            </td>
             <td>
               <div class="btn-group" role="group">
                 <button
@@ -112,10 +117,10 @@
             <td><strong>${{ totalIngresos.toLocaleString() }}</strong></td>
             <td><strong>${{ totalGastos.toLocaleString() }}</strong></td>
             <td><strong>${{ totalGeneral.toLocaleString() }}</strong></td>
-            <td colspan="2"></td>
+            <td colspan="3"></td>
           </tr>
           <tr *ngIf="registrosFiltrados.length === 0">
-            <td colspan="11" class="text-center text-muted">
+            <td colspan="12" class="text-center text-muted">
               <span *ngIf="registros.length === 0">No hay registros de perros</span>
               <span *ngIf="registros.length > 0">No se encontraron registros que coincidan con la búsqueda</span>
             </td>
@@ -153,6 +158,10 @@
         <p><strong>Gastos:</strong> ${{ (registroSeleccionado.gastos || 0).toLocaleString() }}</p>
         <p><strong>Total:</strong> ${{ (registroSeleccionado.total || 0).toLocaleString() }}</p>
         <p><strong>Método de pago:</strong> {{ registroSeleccionado.metodoPago }}</p>
+        <p><strong>Estado de pago:</strong>
+          <span *ngIf="registroSeleccionado.pendientePago" class="badge bg-warning text-dark">Pendiente</span>
+          <span *ngIf="!registroSeleccionado.pendientePago" class="badge bg-success">Pagado</span>
+        </p>
       </div>
       <div class="modal-footer">
         <button
@@ -248,7 +257,7 @@
           </div>
 
           <div class="row">
-            <div class="col-md-6 mb-3">
+            <div class="col-md-4 mb-3">
               <div class="form-check">
                 <input
                   class="form-check-input"
@@ -262,7 +271,7 @@
                 </label>
               </div>
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-4 mb-3">
               <div class="form-check">
                 <input
                   class="form-check-input"
@@ -273,6 +282,19 @@
                   (change)="actualizarIngresosEdit()">
                 <label class="form-check-label" for="banoEdit">
                   Servicio de Baño (${{ (tarifaBano || 0).toLocaleString() }})
+                </label>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="pendientePagoEdit"
+                  [(ngModel)]="pendientePagoEdit"
+                  name="pendientePagoEdit">
+                <label class="form-check-label" for="pendientePagoEdit">
+                  Pendiente pago
                 </label>
               </div>
             </div>

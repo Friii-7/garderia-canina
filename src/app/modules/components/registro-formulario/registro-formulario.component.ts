@@ -15,6 +15,7 @@ export interface RegistroPerro {
   gastos: number;
   total: number;
   metodoPago: string;
+  pendientePago: boolean;
   fechaCreacion?: Date;
 }
 
@@ -40,6 +41,7 @@ export class RegistroFormularioComponent {
   servicioBano: boolean = false;
   gastos: number = 0;
   metodoPago: string = '';
+  pendientePago: boolean = false;
 
   // Valores calculados
   ingresos: number = 0;
@@ -144,6 +146,7 @@ export class RegistroFormularioComponent {
       gastos: this.gastos,
       total: this.total,
       metodoPago: this.metodoPago,
+      pendientePago: this.pendientePago,
       fechaCreacion: new Date()
     };
 
@@ -196,5 +199,6 @@ export class RegistroFormularioComponent {
     this.ingresos = 0;
     this.total = 0;
     this.metodoPago = '';
+    this.pendientePago = false;
   }
 }

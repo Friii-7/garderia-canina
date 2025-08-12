@@ -85,8 +85,8 @@
         </div>
         <!-- Fila 3: Checkboxes en una fila, centrados -->
         <div class="row g-3 mt-2 justify-content-center">
-          <div class="col-md-3"></div>
-          <div class="col-md-3 d-flex justify-content-end align-items-center">
+          <div class="col-md-2"></div>
+          <div class="col-md-2 d-flex justify-content-end align-items-center">
             <div class="form-check">
               <input
                 class="form-check-input"
@@ -100,7 +100,7 @@
               </label>
             </div>
           </div>
-          <div class="col-md-3 d-flex justify-content-start align-items-center">
+          <div class="col-md-2 d-flex justify-content-center align-items-center">
             <div class="form-check">
               <input
                 class="form-check-input"
@@ -114,7 +114,20 @@
               </label>
             </div>
           </div>
-          <div class="col-md-3"></div>
+          <div class="col-md-2 d-flex justify-content-start align-items-center">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="pendientePago"
+                [(ngModel)]="pendientePago"
+                name="pendientePago">
+              <label class="form-check-label ms-2" for="pendientePago">
+                Pendiente pago
+              </label>
+            </div>
+          </div>
+          <div class="col-md-2"></div>
         </div>
         <!-- Fila 4: Ingresos, Total -->
         <div class="row g-3 mt-2">
